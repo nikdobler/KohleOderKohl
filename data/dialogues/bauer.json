@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "bauer", "display_name": "Bauer Siegfried", "archetype": "schlauer Bauer", "icon": "npc_bauer" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tick_reached", "tick": 45 }, "once": true, "priority": 4, "start": "start",
+			"nodes": { "start": { "text": "Siegfried, Bauer. Die Adligen nennen mich einfältig. Ich nenne sie 'Herr' und verkaufe ihnen krummes Gemüse zum Preis von geradem. Wer ist jetzt einfältig?" } }
+		},
+		{
+			"id": "weizen_knapp", "trigger": { "type": "stock_below", "resource": "wheat", "amount": 3 }, "requires_seen": "intro", "once": false, "cooldown_ticks": 120, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Der Weizen ist knapp. Ich sage nur: Mehr Felder, weniger Fahnenmasten. Aber auf mich hört ja keiner — ich rieche zu sehr nach Erfahrung." } }
+		}
+	]
+}

@@ -1,0 +1,9 @@
+{
+	"id": "eroberung", "display_name": "Die grosse Eroberung", "description": "Der Feind ist reich an Wissen. Holt es Euch — auf die unhöfliche Art.",
+	"start": { "stock": { "wood": 80, "stone": 50, "bread": 50 }, "researched": ["stonemasonry", "fortification"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"enemy": { "keep_hp": 200, "defenders": 5, "wave_interval_ticks": 40, "wave_size": 2, "researched": ["stonemasonry", "fortification", "archery", "mining", "smithing"] },
+	"goal": { "description": "Erobert den Bergfried des Feindes und erbeutet sein Wissen.", "trigger": { "type": "combat_status", "status": "victory" } },
+	"events": [
+		{ "id": "verstaerkung", "trigger": { "type": "tick_reached", "tick": 120 }, "message": "Feindliche Verstärkung ist eingetroffen!", "effects": [ { "type": "wave", "size": 4 } ] }
+	]
+}

@@ -1,0 +1,247 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/hud.gd" id="1_hud"]
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_hud")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 390.0
+offset_bottom = 700.0
+
+[node name="Scroll" type="ScrollContainer" parent="Panel"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "Krone und Kohl"
+
+[node name="ScenarioLabel" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[node name="ResourcesTitle" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "— Lager —"
+
+[node name="ResourcesBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="BuildingsTitle" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "— Arbeiter —"
+
+[node name="BuildingsBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="BuildTitle" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "— Bauen —"
+
+[node name="BuildBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="ResearchTitle" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "— Forschung —"
+
+[node name="ResearchBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="MilitaryTitle" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "— Militär —"
+
+[node name="KeepLabel" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "Bergfried: – · Feind: –"
+
+[node name="ArmyLabel" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "Soldaten: 0"
+
+[node name="RecruitBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="MilitaryButtons" type="HBoxContainer" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="StanceButton" type="Button" parent="Panel/Scroll/VBox/MilitaryButtons"]
+layout_mode = 2
+text = "Angriff!"
+
+[node name="PolicyTitle" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "— Politik —"
+
+[node name="RationRow" type="HBoxContainer" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="RationLabel" type="Label" parent="Panel/Scroll/VBox/RationRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Rationen: normal"
+
+[node name="RationMinus" type="Button" parent="Panel/Scroll/VBox/RationRow"]
+layout_mode = 2
+text = "-"
+
+[node name="RationPlus" type="Button" parent="Panel/Scroll/VBox/RationRow"]
+layout_mode = 2
+text = "+"
+
+[node name="WorkRow" type="HBoxContainer" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="WorkLabel" type="Label" parent="Panel/Scroll/VBox/WorkRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Arbeitszeit: normal"
+
+[node name="WorkMinus" type="Button" parent="Panel/Scroll/VBox/WorkRow"]
+layout_mode = 2
+text = "-"
+
+[node name="WorkPlus" type="Button" parent="Panel/Scroll/VBox/WorkRow"]
+layout_mode = 2
+text = "+"
+
+[node name="ProductivityLabel" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "Arbeitsleistung: 100 %"
+
+[node name="HousingLabel" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "Wohnraum: 0 / 0"
+
+[node name="SatisfactionLabel" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+text = "Zufriedenheit: 50 %"
+
+[node name="Buttons" type="HBoxContainer" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="SaveButton" type="Button" parent="Panel/Scroll/VBox/Buttons"]
+layout_mode = 2
+text = "Speichern"
+
+[node name="LoadButton" type="Button" parent="Panel/Scroll/VBox/Buttons"]
+layout_mode = 2
+text = "Laden"
+
+[node name="MenuButton" type="Button" parent="Panel/Scroll/VBox/Buttons"]
+layout_mode = 2
+text = "Szenarien"
+
+[node name="StatusLabel" type="Label" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[node name="DialoguePanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 420.0
+offset_top = -190.0
+offset_right = -60.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBox" type="HBoxContainer" parent="DialoguePanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Portrait" type="TextureRect" parent="DialoguePanel/HBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 64)
+stretch_mode = 5
+size_flags_vertical = 0
+
+[node name="VBox" type="VBoxContainer" parent="DialoguePanel/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="SpeakerLabel" type="Label" parent="DialoguePanel/HBox/VBox"]
+layout_mode = 2
+text = "Sprecher"
+
+[node name="TextLabel" type="Label" parent="DialoguePanel/HBox/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[node name="ChoicesBox" type="VBoxContainer" parent="DialoguePanel/HBox/VBox"]
+layout_mode = 2
+
+[node name="ScenarioMenu" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -280.0
+offset_right = 260.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="ScenarioMenu"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="MenuTitle" type="Label" parent="ScenarioMenu/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Krone und Kohl — Szenario wählen"
+
+[node name="MenuScroll" type="ScrollContainer" parent="ScenarioMenu/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ScenarioList" type="VBoxContainer" parent="ScenarioMenu/VBox/MenuScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="CloseButton" type="Button" parent="ScenarioMenu/VBox"]
+layout_mode = 2
+text = "Weiterspielen"
+
+[node name="FpsLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -140.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 34.0
+grow_horizontal = 0
+horizontal_alignment = 2
+text = "FPS: –"

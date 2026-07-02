@@ -1,0 +1,9 @@
+{
+	"id": "feuer", "display_name": "Das grosse Feuer", "description": "Ein Funke, ein Sturm, ein halbes Lager weniger. Baut wieder auf.",
+	"start": { "stock": { "wood": 40, "bread": 15 }, "researched": [], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Sammelt 120 Holz für den Wiederaufbau.", "trigger": { "type": "stock_at_least", "resource": "wood", "amount": 120 } },
+	"events": [
+		{ "id": "brand", "trigger": { "type": "tick_reached", "tick": 35 }, "message": "FEUER! Das Holzlager brennt lichterloh — nur ein Drittel ist zu retten.", "effects": [ { "type": "stock_multiply", "resource": "wood", "factor": 0.34 }, { "type": "satisfaction_add", "amount": -15 } ] },
+		{ "id": "nachbarschaftshilfe", "trigger": { "type": "tick_reached", "tick": 80 }, "message": "Das Nachbardorf schickt Bauholz und gute Worte. Die Worte brennen wenigstens nicht.", "effects": [ { "type": "stock_add", "resource": "wood", "amount": 25 }, { "type": "satisfaction_add", "amount": 5 } ] }
+	]
+}

@@ -1,0 +1,9 @@
+{
+	"id": "zuchterfolg", "display_name": "Der Zuchterfolg", "description": "Die Schweine gedeihen prächtig. Jetzt fehlt nur noch jemand, der daraus Würste macht.",
+	"start": { "stock": { "wood": 40, "wheat": 25 }, "researched": ["husbandry"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Lagert 40 Fleisch ein (Veredelung nötig).", "trigger": { "type": "stock_at_least", "resource": "meat", "amount": 40 } },
+	"events": [
+		{ "id": "wurf", "trigger": { "type": "tick_reached", "tick": 50 }, "message": "Zuchterfolg! Ein Rekordwurf — die Ställe quieken im Chor.", "effects": [ { "type": "stock_add", "resource": "pig", "amount": 15 }, { "type": "satisfaction_add", "amount": 5 } ] },
+		{ "id": "ausbruch", "trigger": { "type": "stock_at_least", "resource": "pig", "amount": 20 }, "message": "Massenausbruch aus dem Stall! Die halbe Siedlung jagt Schweine. Der Barde schreibt bereits.", "effects": [ { "type": "stock_multiply", "resource": "pig", "factor": 0.7 } ] }
+	]
+}

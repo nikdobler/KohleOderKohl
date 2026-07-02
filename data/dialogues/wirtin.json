@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "wirtin", "display_name": "Wirtin Hildegard", "archetype": "gerissene Wirtin", "icon": "npc_wirtin" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tech_researched", "tech": "brewing" }, "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Hildegard, Wirtin. Ihr braut Bier? Wunderbar. Ich verkaufe es, verdünne es keinesfalls und höre dabei alles, was in dieser Siedlung geflüstert wird. Erste Information gratis: Der Vogt zählt nachts sein Kleingeld. Laut." } }
+		},
+		{
+			"id": "wein_konkurrenz", "trigger": { "type": "stock_at_least", "resource": "wine", "amount": 10 }, "requires_seen": "intro", "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Wein im Ausschank! Die feinen Leute bestellen jetzt 'ein Gläschen Roten' und halten den kleinen Finger ab. Ich berechne dafür einen Vornehmheitszuschlag." } }
+		}
+	]
+}

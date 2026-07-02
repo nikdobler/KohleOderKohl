@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "jaeger", "display_name": "Jäger Waldemar", "archetype": "einsilbiger Jäger", "icon": "npc_jaeger" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tick_reached", "tick": 75 }, "once": true, "priority": 4, "start": "start",
+			"nodes": { "start": { "text": "Waldemar. Ich lebe im Wald, Ihr fällt ihn. Wir werden noch viel Freude miteinander haben. Lasst die alten Eichen stehen, dann bleibt das Wild — und ich bleibe freundlich. Relativ." } }
+		},
+		{
+			"id": "wald_schwund", "trigger": { "type": "stock_at_least", "resource": "wood", "amount": 150 }, "requires_seen": "intro", "once": true, "priority": 2, "start": "start",
+			"nodes": { "start": { "text": "Hundertfünfzig Stämme im Lager. Ich habe heute ein Reh getroffen, das mich ansah wie einen Vermieter. Denkt an die Aufforstung, Herr. Der Wald vergisst nichts." } }
+		}
+	]
+}

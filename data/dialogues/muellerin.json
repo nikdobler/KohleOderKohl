@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "muellerin", "display_name": "Müllerin Berta", "archetype": "resolute Müllerin", "icon": "npc_muellerin" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tick_reached", "tick": 70 }, "once": true, "priority": 4, "start": "start",
+			"nodes": { "start": { "text": "Berta. Ich mahle das Korn und gelegentlich Beschwerden. Wer mir krummes Getreide bringt, kriegt krummes Mehl. So einfach ist Gerechtigkeit." } }
+		},
+		{
+			"id": "brotsegen", "trigger": { "type": "stock_at_least", "resource": "bread", "amount": 60 }, "requires_seen": "intro", "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Sechzig Brote! Die Bäckerei läuft, das Mehl fliesst. Wenn jetzt noch die Männer so zuverlässig wären wie mein Mühlrad, wäre das Leben perfekt." } }
+		}
+	]
+}

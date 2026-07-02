@@ -1,0 +1,19 @@
+{
+	"npc": { "id": "ritter", "display_name": "Ritter Kunz von Prahlfels", "archetype": "grosssprecherischer Ritter", "icon": "npc_ritter" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tick_reached", "tick": 60 }, "once": true, "priority": 4, "start": "start",
+			"nodes": {
+				"start": { "text": "Kunz von Prahlfels, Bezwinger von elf Turnieren! Nun ja — Teilnehmer von elf Turnieren. Bezwungen habe ich hauptsächlich das Buffet.", "choices": [
+					{ "text": "Wir brauchen Kämpfer, keine Esser.", "next": "kaempfer" },
+					{ "text": "Erzählt vom grössten Sieg.", "next": "sieg" } ] },
+				"kaempfer": { "text": "Ich kann beides! Nacheinander. Erst das Buffet, dann der Feind. Ein Ritter kämpft nie auf leeren Magen — das steht so im Kodex. Ganz hinten." },
+				"sieg": { "text": "Drei Räuber! Oder waren es Rehe? Es war neblig. Jedenfalls sind sie geflohen, und das zählt." }
+			}
+		},
+		{
+			"id": "sieg_kommentar", "trigger": { "type": "combat_status", "status": "victory" }, "requires_seen": "intro", "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Der Feind ist besiegt! Genau wie ich es geplant hätte, wäre ich gefragt worden. Ich lasse das in meine Chronik schreiben — Kapitel zwölf: Siege, an denen ich fast beteiligt war." } }
+		}
+	]
+}

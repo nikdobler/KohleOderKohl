@@ -1,0 +1,9 @@
+{
+	"id": "steinreich", "display_name": "Steinreich", "description": "Eine Kathedrale will gebaut werden — woanders. Ihr liefert nur den Stein. NUR.",
+	"start": { "stock": { "wood": 35 }, "researched": ["stonemasonry"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Lagert 120 Stein für den Domvogt ein.", "trigger": { "type": "stock_at_least", "resource": "stone", "amount": 120 } },
+	"events": [
+		{ "id": "werkzeugbruch", "trigger": { "type": "stock_at_least", "resource": "stone", "amount": 60 }, "message": "Werkzeugbruch im Steinbruch! Die Spitzhacken waren wohl aus Butter.", "effects": [ { "type": "stock_add", "resource": "wood", "amount": -10 }, { "type": "satisfaction_add", "amount": -5 } ] },
+		{ "id": "bonus", "trigger": { "type": "stock_at_least", "resource": "stone", "amount": 100 }, "message": "Der Domvogt zahlt einen Vorschuss. In Brot. Domvögte sind sparsam.", "effects": [ { "type": "stock_add", "resource": "bread", "amount": 20 } ] }
+	]
+}

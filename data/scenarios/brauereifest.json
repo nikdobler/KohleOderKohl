@@ -1,0 +1,9 @@
+{
+	"id": "brauereifest", "display_name": "Das Brauereifest", "description": "Ein Fass für jeden Haushalt und zwei für den Mönch. Braut, was das Zeug hält.",
+	"start": { "stock": { "wood": 40, "wheat": 40 }, "researched": ["stonemasonry", "brewing"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Braut 50 Fass Bier.", "trigger": { "type": "stock_at_least", "resource": "beer", "amount": 50 } },
+	"events": [
+		{ "id": "schwund", "trigger": { "type": "stock_at_least", "resource": "beer", "amount": 25 }, "message": "Mysteriöser Schwund im Bierkeller. Bruder Cellarius hat ein Alibi: Er war im Bierkeller.", "effects": [ { "type": "stock_multiply", "resource": "beer", "factor": 0.85 } ] },
+		{ "id": "durstige_gaeste", "trigger": { "type": "tick_reached", "tick": 150 }, "message": "Durstige Gäste aus drei Dörfern! Die Stimmung steigt mit jedem Krug.", "effects": [ { "type": "satisfaction_add", "amount": 8 } ] }
+	]
+}

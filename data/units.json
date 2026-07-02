@@ -1,0 +1,78 @@
+{
+	"swordsman": {
+		"id": "swordsman",
+		"display_name": "Schwertkämpfer",
+		"hp": 30,
+		"attack": 6,
+		"defense": 3,
+		"speed": 1,
+		"cost": { "wood": 5, "bread": 5 },
+		"icon": "unit_swordsman"
+	},
+	"archer": {
+		"id": "archer",
+		"display_name": "Bogenschütze",
+		"hp": 20,
+		"attack": 5,
+		"defense": 1,
+		"speed": 1,
+		"attack_range": 3,
+		"requires_tech": "archery",
+		"cost": { "wood": 6, "bread": 4 },
+		"icon": "unit_archer"
+	},
+	"crossbowman": {
+		"id": "crossbowman",
+		"display_name": "Armbrustschütze",
+		"hp": 22,
+		"attack": 8,
+		"defense": 2,
+		"speed": 1,
+		"attack_range": 4,
+		"requires_tech": "crossbow",
+		"cost": { "weapons": 1, "bread": 5 },
+		"icon": "unit_crossbowman"
+	},
+	"knight": {
+		"id": "knight",
+		"display_name": "Ritter",
+		"hp": 60,
+		"attack": 10,
+		"defense": 6,
+		"speed": 1,
+		"requires_tech": "smithing",
+		"cost": { "weapons": 2, "armor": 1, "bread": 8 },
+		"icon": "unit_knight"
+	},
+	"cannoneer": {
+		"id": "cannoneer",
+		"display_name": "Kanonier",
+		"hp": 25,
+		"attack": 15,
+		"defense": 1,
+		"speed": 1,
+		"attack_range": 5,
+		"requires_tech": "cannon",
+		"cost": { "weapons": 1, "iron": 5, "bread": 5 },
+		"icon": "unit_cannoneer"
+	},
+	"raider": {
+		"id": "raider",
+		"display_name": "Plünderer",
+		"hp": 24,
+		"attack": 5,
+		"defense": 2,
+		"speed": 1,
+		"icon": "unit_raider"
+	},
+	"bandit_archer": {
+		"id": "bandit_archer",
+		"display_name": "Banditen-Schütze",
+		"hp": 18,
+		"attack": 4,
+		"defense": 1,
+		"speed": 1,
+		"attack_range": 3,
+		"icon": "unit_bandit_archer"
+	}
+}

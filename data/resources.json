@@ -1,0 +1,18 @@
+{
+	"wood": { "id": "wood", "display_name": "Holz", "icon": "resource_wood" },
+	"wheat": { "id": "wheat", "display_name": "Weizen", "icon": "resource_wheat" },
+	"bread": { "id": "bread", "display_name": "Brot", "icon": "resource_bread" },
+	"stone": { "id": "stone", "display_name": "Stein", "icon": "resource_stone" },
+	"beer": { "id": "beer", "display_name": "Bier", "icon": "resource_beer", "luxury_mood": 2 },
+	"grapes": { "id": "grapes", "display_name": "Trauben", "icon": "resource_grapes" },
+	"wine": { "id": "wine", "display_name": "Wein", "icon": "resource_wine", "luxury_mood": 3 },
+	"iron": { "id": "iron", "display_name": "Eisen", "icon": "resource_iron" },
+	"gold": { "id": "gold", "display_name": "Gold", "icon": "resource_gold" },
+	"jewelry": { "id": "jewelry", "display_name": "Schmuck", "icon": "resource_jewelry", "luxury_mood": 4 },
+	"weapons": { "id": "weapons", "display_name": "Waffen", "icon": "resource_weapons" },
+	"armor": { "id": "armor", "display_name": "Rüstungen", "icon": "resource_armor" },
+	"pig": { "id": "pig", "display_name": "Schweine", "icon": "resource_pig" },
+	"meat": { "id": "meat", "display_name": "Fleisch", "icon": "resource_meat", "luxury_mood": 2 },
+	"milk": { "id": "milk", "display_name": "Milch", "icon": "resource_milk" },
+	"cheese": { "id": "cheese", "display_name": "Käse", "icon": "resource_cheese", "luxury_mood": 2 }
+}

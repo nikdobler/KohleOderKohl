@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "barde", "display_name": "Barde Lauterbach", "archetype": "romantischer Barde", "icon": "npc_barde" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tick_reached", "tick": 100 }, "once": true, "priority": 4, "start": "start",
+			"nodes": { "start": { "text": "Lauterbach, Barde und Chronist der Herzen! Ich schrieb bereits vier Balladen über Eure Siedlung. Drei davon reimen sich. Die vierte ist... experimentell." } }
+		},
+		{
+			"id": "jubel", "trigger": { "type": "satisfaction_at_least", "amount": 80 }, "requires_seen": "intro", "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Das Volk singt meine Lieder! Gut, es grölt sie. Und den Text haben sie geändert. Und die Melodie. Aber der Kern — der Kern ist von mir!" } }
+		}
+	]
+}

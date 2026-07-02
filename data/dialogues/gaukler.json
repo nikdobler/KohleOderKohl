@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "gaukler", "display_name": "Gaukler Firlefanz", "archetype": "aufdringlicher Gaukler", "icon": "npc_gaukler" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "satisfaction_at_least", "amount": 70 }, "once": true, "priority": 4, "start": "start",
+			"nodes": { "start": { "text": "Firlefanz! Jongleur, Feuerschlucker, Steuerflüchtling! Wo das Volk lacht, bin ich nicht weit. Wo der Vogt steht, bin ich noch weiter. Drei Bälle, zwei Fackeln, ein Ruf — alles im Angebot!" } }
+		},
+		{
+			"id": "flaute", "trigger": { "type": "satisfaction_below", "amount": 45 }, "requires_seen": "intro", "once": false, "cooldown_ticks": 200, "priority": 2, "start": "start",
+			"nodes": { "start": { "text": "Schlechte Stimmung ist Gift fürs Gewerbe. Gestern habe ich drei Fackeln jongliert und geerntet habe ich: ein Gähnen. EIN GÄHNEN. Ich überlege, zur Konkurrenz zu gehen. Zur Kirche." } }
+		}
+	]
+}

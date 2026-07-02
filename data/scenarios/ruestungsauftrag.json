@@ -1,0 +1,8 @@
+{
+	"id": "ruestungsauftrag", "display_name": "Der Rüstungsauftrag", "description": "Zwölf Ritter, null Rüstungen. Das Turnier ist in sechs Wochen. Kein Druck.",
+	"start": { "stock": { "wood": 60, "stone": 30, "iron": 10 }, "researched": ["stonemasonry", "mining", "smithing"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Fertigt 12 Rüstungen fürs Turnier.", "trigger": { "type": "stock_at_least", "resource": "armor", "amount": 12 } },
+	"events": [
+		{ "id": "anprobe", "trigger": { "type": "stock_at_least", "resource": "armor", "amount": 6 }, "message": "Erste Anprobe: Ritter Kunz passt nicht in Grösse M. Er besteht darauf, dass die Rüstung geschrumpft ist.", "effects": [ { "type": "stock_add", "resource": "iron", "amount": -3 } ] }
+	]
+}

@@ -1,0 +1,9 @@
+{
+	"id": "kaesekoenig", "display_name": "Der Käsekönig", "description": "Euer Käse soll der beste des Landes werden. Der Weg dorthin führt über viele Kühe.",
+	"start": { "stock": { "wood": 45, "wheat": 20 }, "researched": ["husbandry"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Lagert 30 Laib Käse ein (Veredelung nötig).", "trigger": { "type": "stock_at_least", "resource": "cheese", "amount": 30 } },
+	"events": [
+		{ "id": "milchschwemme", "trigger": { "type": "tick_reached", "tick": 70 }, "message": "Die Kühe geben wie verrückt — Milchschwemme!", "effects": [ { "type": "stock_add", "resource": "milk", "amount": 20 } ] },
+		{ "id": "maeuse", "trigger": { "type": "stock_at_least", "resource": "cheese", "amount": 15 }, "message": "Mäuse im Käselager! Der Schaden ist überschaubar, die Empörung nicht.", "effects": [ { "type": "stock_multiply", "resource": "cheese", "factor": 0.8 }, { "type": "satisfaction_add", "amount": -5 } ] }
+	]
+}

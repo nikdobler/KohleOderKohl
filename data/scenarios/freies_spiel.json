@@ -1,0 +1,7 @@
+{
+	"id": "freies_spiel", "display_name": "Freies Spiel", "description": "Keine Ziele, keine Angriffswellen — baut nach Herzenslust. Der Gegner wartet, bis Ihr ihn besucht.",
+	"start": { "stock": { "wood": 60, "stone": 20, "bread": 30 }, "researched": [], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"enemy": { "wave_interval_ticks": 0, "wave_size": 0 },
+	"goal": { "description": "Kein Ziel — Euer Reich, Eure Regeln.", "trigger": { "type": "stock_at_least", "resource": "wood", "amount": 999999 } },
+	"events": []
+}

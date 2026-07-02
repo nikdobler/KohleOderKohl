@@ -1,0 +1,19 @@
+{
+	"npc": { "id": "moench", "display_name": "Bruder Cellarius", "archetype": "betrunkener Mönch", "icon": "npc_moench" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tech_researched", "tech": "brewing" }, "once": true, "priority": 4, "start": "start",
+			"nodes": {
+				"start": { "text": "Bruder Cellarius, zuständig für Keller und Seelenheil — in dieser Reihenfolge. Ich höre, Ihr braut jetzt? Der Herr wirkt auf wundersamen Wegen.", "choices": [
+					{ "text": "Das Bier ist für die Arbeiter.", "next": "arbeiter" },
+					{ "text": "Trinkt Ihr nicht ein wenig viel, Bruder?", "next": "viel" } ] },
+				"arbeiter": { "text": "Natürlich, natürlich. Ich prüfe nur die Qualität. Vor jeder Lieferung. Und danach. Und dazwischen einmal aus Gründlichkeit." },
+				"viel": { "text": "Ich trinke in Massen! Äh — massvoll. Die Betonung ist Auslegungssache, wie so vieles in der Schrift." }
+			}
+		},
+		{
+			"id": "bier_leer", "trigger": { "type": "stock_below", "resource": "beer", "amount": 2 }, "requires_seen": "intro", "once": false, "cooldown_ticks": 180, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Das Bier ist aus! Ich habe nachgesehen. Mehrfach. Persönlich. Das nenne ich Hingabe — Ihr würdet es vermutlich anders nennen." } }
+		}
+	]
+}

@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "hanfbauer", "display_name": "Hanfbauer Sepp", "archetype": "bekiffter Hanfbauer", "icon": "npc_hanfbauer" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tick_reached", "tick": 150 }, "once": true, "priority": 4, "start": "start",
+			"nodes": { "start": { "text": "Heee. Sepp. Ich bau Hanf an. Für Seile! Hauptsächlich für Seile. Also, die Ernte war klein dies Jahr. Sehr kleine Seile. Wollt Ihr mal an der Blüte riechen? Rein botanisch." } }
+		},
+		{
+			"id": "philosophie", "trigger": { "type": "satisfaction_at_least", "amount": 75 }, "requires_seen": "intro", "once": true, "priority": 2, "start": "start",
+			"nodes": { "start": { "text": "Alle so entspannt hier, Mann. Habt Ihr auch manchmal das Gefühl, wir sind alle nur kleine Figuren auf einer riesigen Karte, und irgendwer klickt auf uns? ... Nur ich? Gut. Guuut." } }
+		}
+	]
+}

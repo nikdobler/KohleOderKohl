@@ -1,0 +1,9 @@
+{
+	"id": "goldrausch", "display_name": "Der Goldrausch", "description": "In den Felsen glitzert es. Halb so wertvoll wie erhofft, doppelt so begehrt.",
+	"start": { "stock": { "wood": 50, "stone": 25 }, "researched": ["stonemasonry", "mining"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Fertigt 10 Schmuckstücke (Goldschmiedekunst nötig).", "trigger": { "type": "stock_at_least", "resource": "jewelry", "amount": 10 } },
+	"events": [
+		{ "id": "goldader", "trigger": { "type": "tick_reached", "tick": 60 }, "message": "Eine Goldader! Die Bergleute singen. Schief, aber von Herzen.", "effects": [ { "type": "stock_add", "resource": "gold", "amount": 15 }, { "type": "satisfaction_add", "amount": 8 } ] },
+		{ "id": "claim_raeuber", "trigger": { "type": "stock_at_least", "resource": "gold", "amount": 20 }, "message": "Das Gold lockt Gesindel an — Plünderer im Anmarsch!", "effects": [ { "type": "wave", "size": 3 } ] }
+	]
+}

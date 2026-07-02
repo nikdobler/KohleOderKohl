@@ -1,0 +1,19 @@
+{
+	"npc": { "id": "boesewicht", "display_name": "Der Schwarze Ratgeber", "archetype": "archetypischer Bösewicht", "icon": "npc_boesewicht" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tick_reached", "tick": 200 }, "once": true, "priority": 4, "start": "start",
+			"nodes": {
+				"start": { "text": "Man nennt mich den Schwarzen Ratgeber. Ich biete Euch Macht, Reichtum und einen sehr günstigen Pakt. Das Kleingedruckte ist... klein.", "choices": [
+					{ "text": "Kein Interesse an Pakten.", "next": "ablehnung" },
+					{ "text": "Wie klein genau?", "next": "kleingedruckt" } ] },
+				"ablehnung": { "text": "Wie tugendhaft. Langweilig, aber tugendhaft. Ich warte drüben im Schatten, falls Ihr es Euch anders überlegt. Ich habe Zeit. Sehr viel Zeit. Unheimlich viel." },
+				"kleingedruckt": { "text": "Winzig. Klausel sieben regelt die Seelenfrage, Klausel acht das Rückgaberecht. Es gibt kein Rückgaberecht — deshalb ist Klausel acht so kurz." }
+			}
+		},
+		{
+			"id": "niederlage_spott", "trigger": { "type": "combat_status", "status": "defeat" }, "requires_seen": "intro", "once": true, "priority": 5, "start": "start",
+			"nodes": { "start": { "text": "Euer Bergfried ist gefallen. Wie bedauerlich. Mein Angebot steht übrigens noch — jetzt mit zehn Prozent Rabatt. Krisenpreise." } }
+		}
+	]
+}

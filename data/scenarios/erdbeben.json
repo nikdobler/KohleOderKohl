@@ -1,0 +1,9 @@
+{
+	"id": "erdbeben", "display_name": "Das Erdbeben", "description": "Die Erde bebt, der Steinbruch stürzt ein. Stein ist jetzt Gold wert.",
+	"start": { "stock": { "wood": 25, "stone": 30 }, "researched": ["stonemasonry"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Sammelt 80 Stein für die Reparaturen.", "trigger": { "type": "stock_at_least", "resource": "stone", "amount": 80 } },
+	"events": [
+		{ "id": "beben", "trigger": { "type": "tick_reached", "tick": 45 }, "message": "ERDBEBEN! Das Steinlager ist unter sich selbst begraben.", "effects": [ { "type": "stock_multiply", "resource": "stone", "factor": 0.0 }, { "type": "satisfaction_add", "amount": -20 } ] },
+		{ "id": "nachbeben", "trigger": { "type": "tick_reached", "tick": 90 }, "message": "Ein Nachbeben! Das Volk schläft im Freien. Vorsichtshalber. Und wegen der Stimmung.", "effects": [ { "type": "satisfaction_add", "amount": -8 } ] }
+	]
+}

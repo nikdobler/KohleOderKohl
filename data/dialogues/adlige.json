@@ -1,0 +1,19 @@
+{
+	"npc": { "id": "adlige", "display_name": "Freifrau von Zierlitz", "archetype": "versnobte Adlige", "icon": "npc_adlige" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tick_reached", "tick": 180 }, "once": true, "priority": 4, "start": "start",
+			"nodes": {
+				"start": { "text": "Von Zierlitz. Ich bin auf der Durchreise und Euer... Anwesen lag im Weg. Ist das dort hinten ein Bergfried oder ein ambitionierter Schuppen?", "choices": [
+					{ "text": "Das ist solide Handwerkskunst.", "next": "handwerk" },
+					{ "text": "Die Tür ist dort hinten, Freifrau.", "next": "tuer" } ] },
+				"handwerk": { "text": "Solide. Ja. Mein Pferdestall ist auch solide, und er hat immerhin Fresken. Aber ich will nicht unhöflich sein — dafür bin ich zu gut erzogen. Angeblich." },
+				"tuer": { "text": "Schlagfertig! Wie erfrischend ländlich. Ich bleibe vielleicht doch. Irgendwo muss man ja enttäuscht werden, warum nicht hier." }
+			}
+		},
+		{
+			"id": "schmuck", "trigger": { "type": "stock_at_least", "resource": "jewelry", "amount": 5 }, "requires_seen": "intro", "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Schmuck! Hier! Ich nehme alles zurück. Nun ja — das meiste. Der Bergfried bleibt ein Schuppen, aber ein Schuppen mit Niveau." } }
+		}
+	]
+}

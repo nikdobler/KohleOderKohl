@@ -1,0 +1,19 @@
+{
+	"npc": { "id": "fischer", "display_name": "Fischer Aalrik", "archetype": "müffelnder Fischer", "icon": "npc_fischer" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tick_reached", "tick": 90 }, "once": true, "priority": 4, "start": "start",
+			"nodes": {
+				"start": { "text": "Aalrik. Fischer. Ihr riecht es vermutlich schon. Das ist kein Geruch, das ist Berufserfahrung. Zwanzig Jahre Fluss lassen sich nicht abwaschen.", "choices": [
+					{ "text": "Es gibt hier doch gar keinen Fischmarkt.", "next": "markt" },
+					{ "text": "Angenehm. Aus der Ferne.", "next": "ferne" } ] },
+				"markt": { "text": "Eben! Deshalb stehe ich hier und rieche unbeschäftigt. Baut mir einen Steg, und ich fülle Euch die Fässer. Bis dahin: moralische Unterstützung. Mit Duftnote." },
+				"ferne": { "text": "Sagt jeder. Meine Frau wohnt inzwischen zwei Häuser weiter. Wir winken uns." }
+			}
+		},
+		{
+			"id": "sumpfblick", "trigger": { "type": "satisfaction_below", "amount": 40 }, "requires_seen": "intro", "once": false, "cooldown_ticks": 150, "priority": 2, "start": "start",
+			"nodes": { "start": { "text": "Die Leute maulen. Wisst Ihr, was hilft? Fisch. Wisst Ihr, was wir nicht haben? Genau. Ich sage nicht, dass ich es Euch gesagt habe. Aber ich habe es Euch gesagt." } }
+		}
+	]
+}

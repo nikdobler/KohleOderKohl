@@ -1,0 +1,9 @@
+{
+	"id": "weinlese", "display_name": "Die Weinlese", "description": "Die Hügel tragen Trauben, der Keller wartet. Ein Jahrgang für die Chronik.",
+	"start": { "stock": { "wood": 45, "bread": 25 }, "researched": ["viticulture"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Keltert 30 Fass Wein.", "trigger": { "type": "stock_at_least", "resource": "wine", "amount": 30 } },
+	"events": [
+		{ "id": "sonnenjahr", "trigger": { "type": "tick_reached", "tick": 60 }, "message": "Ein Sonnenjahr! Die Trauben platzen fast vor Zucker.", "effects": [ { "type": "stock_add", "resource": "grapes", "amount": 25 } ] },
+		{ "id": "hagel", "trigger": { "type": "tick_reached", "tick": 130 }, "message": "Hagel über den Weinbergen! Traubert weint. Es ist unklar, ob wegen der Trauben.", "effects": [ { "type": "stock_multiply", "resource": "grapes", "factor": 0.5 }, { "type": "satisfaction_add", "amount": -6 } ] }
+	]
+}

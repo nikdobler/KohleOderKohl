@@ -1,0 +1,9 @@
+{
+	"id": "handelsgesandter", "display_name": "Der Handelsgesandte", "description": "Ein Gesandter aus dem Süden verspricht Reichtum. Seine Geschenke haben Haken — und Zinsen.",
+	"start": { "stock": { "wood": 30, "bread": 15 }, "researched": ["stonemasonry", "mining"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Sammelt 30 Gold als Handelskapital.", "trigger": { "type": "stock_at_least", "resource": "gold", "amount": 30 } },
+	"events": [
+		{ "id": "geschenk", "trigger": { "type": "tick_reached", "tick": 50 }, "message": "Der Gesandte lässt 20 Holz da. 'Als Geste.' Er notiert es in einem sehr dicken Buch.", "effects": [ { "type": "stock_add", "resource": "wood", "amount": 20 } ] },
+		{ "id": "rechnung", "trigger": { "type": "stock_at_least", "resource": "gold", "amount": 15 }, "message": "Die Rechnung kommt: Der Gesandte fordert 'seine' Investition zurück. Mit Nachdruck.", "effects": [ { "type": "stock_add", "resource": "gold", "amount": -5 }, { "type": "satisfaction_add", "amount": -5 } ] }
+	]
+}

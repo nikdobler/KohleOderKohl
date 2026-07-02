@@ -1,0 +1,10 @@
+{
+	"id": "belagerung", "display_name": "Die Belagerung", "description": "Die Plünderer kommen in Wellen. Haltet den Bergfried, bis der Winter sie vertreibt.",
+	"start": { "stock": { "wood": 30, "stone": 30, "bread": 20 }, "researched": ["stonemasonry", "fortification"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"enemy": { "wave_interval_ticks": 30, "wave_size": 3, "units": ["raider", "raider", "bandit_archer"], "keep_hp": 150 },
+	"goal": { "description": "Überlebt bis Zug 300.", "trigger": { "type": "tick_reached", "tick": 300 } },
+	"events": [
+		{ "id": "sturm", "trigger": { "type": "tick_reached", "tick": 100 }, "message": "Sturmangriff! Eine Grosswelle rollt heran.", "effects": [ { "type": "wave", "size": 5 } ] },
+		{ "id": "letzter_ansturm", "trigger": { "type": "tick_reached", "tick": 250 }, "message": "Der letzte Ansturm — danach ist der Feind erschöpft!", "effects": [ { "type": "wave", "size": 6 }, { "type": "satisfaction_add", "amount": -10 } ] }
+	]
+}

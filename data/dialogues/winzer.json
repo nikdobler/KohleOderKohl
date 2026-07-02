@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "winzer", "display_name": "Winzer Traubert", "archetype": "leidenschaftlicher Winzer", "icon": "npc_winzer" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tech_researched", "tech": "viticulture" }, "once": true, "priority": 4, "start": "start",
+			"nodes": { "start": { "text": "Traubert! Endlich Weinbau! Wisst Ihr, was dieser Boden ist? Terroir! Die Hügel, die Sonne, der leichte Sumpfhauch von Westen — das wird ein Jahrgang, über den man spricht. Notfalls nur ich." } }
+		},
+		{
+			"id": "erster_wein", "trigger": { "type": "stock_at_least", "resource": "wine", "amount": 5 }, "requires_seen": "intro", "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Der erste Wein! Ich schmecke Kirsche, Leder und eine Spur Verzweiflung von der letzten Belagerung. Ein ehrlicher Tropfen. Achtzehn von zwanzig Punkten — die zwei Abzug sind für den Holzbecher." } }
+		}
+	]
+}

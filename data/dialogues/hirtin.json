@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "hirtin", "display_name": "Hirtin Amalie", "archetype": "pragmatische Hirtin", "icon": "npc_hirtin" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tech_researched", "tech": "husbandry" }, "once": true, "priority": 4, "start": "start",
+			"nodes": { "start": { "text": "Amalie. Ich hüte alles, was vier Beine hat und wegläuft. Schweine, Kühe, gelegentlich den Mönch auf dem Heimweg. Viehzucht ist Menschenkenntnis mit Fell." } }
+		},
+		{
+			"id": "milchsegen", "trigger": { "type": "stock_at_least", "resource": "milk", "amount": 20 }, "requires_seen": "intro", "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Zwanzig Kannen Milch! Die Kühe sind zufrieden. Kühe sind übrigens die besseren Bewohner: Sie meckern nicht über die Rationen, sie SIND die Rationen. Aber sagt das nicht dem Metzger, sonst wird er sentimental." } }
+		}
+	]
+}

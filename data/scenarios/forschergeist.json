@@ -1,0 +1,9 @@
+{
+	"id": "forschergeist", "display_name": "Der Forschergeist", "description": "Von der Steinmetzkunst bis zur Kanone — beweist, dass diese Siedlung dem Fortschritt gehört.",
+	"start": { "stock": { "wood": 120, "wheat": 40, "bread": 40 }, "researched": [], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Erforscht die Kanonengiesserei.", "trigger": { "type": "tech_researched", "tech": "cannon" } },
+	"events": [
+		{ "id": "gelehrter", "trigger": { "type": "tick_reached", "tick": 80 }, "message": "Ein reisender Gelehrter hilft aus — und hinterlässt Notizen und Eisenproben.", "effects": [ { "type": "stock_add", "resource": "iron", "amount": 10 } ] },
+		{ "id": "maezen", "trigger": { "type": "tech_researched", "tech": "smithing" }, "message": "Ein Mäzen ist beeindruckt und spendet fürs grosse Werk.", "effects": [ { "type": "stock_add", "resource": "gold", "amount": 10 } ] }
+	]
+}

@@ -1,0 +1,62 @@
+{
+	"water": {
+		"id": "water",
+		"display_name": "Wasser",
+		"color": "#2f6b8f",
+		"noise_max": -0.53,
+		"passable": false,
+		"features": {},
+		"decor": { "lilypad": 0.14, "reeds": 0.1 }
+	},
+	"swamp": {
+		"id": "swamp",
+		"display_name": "Sumpf",
+		"color": "#5f6b47",
+		"noise_max": -0.45,
+		"passable": false,
+		"features": { "tree": 0.07 },
+		"decor": { "reeds": 0.22, "deadwood": 0.06 }
+	},
+	"valley": {
+		"id": "valley",
+		"display_name": "Tal",
+		"color": "#6aa048",
+		"noise_max": -0.2,
+		"features": { "tree": 0.1 },
+		"decor": { "flowers": 0.14, "grass_tuft": 0.22, "bush": 0.05, "fern": 0.04, "ruins": 0.008 }
+	},
+	"grassland": {
+		"id": "grassland",
+		"display_name": "Grasland",
+		"color": "#7dae5a",
+		"noise_max": 0.1,
+		"features": { "tree": 0.16, "rock": 0.01 },
+		"decor": { "flowers": 0.1, "grass_tuft": 0.2, "bush": 0.04, "mushroom": 0.02, "ruins": 0.006 }
+	},
+	"hills": {
+		"id": "hills",
+		"display_name": "Hügel",
+		"color": "#8fa05e",
+		"noise_max": 0.4,
+		"features": { "tree": 0.05, "rock": 0.06 },
+		"decor": { "grass_tuft": 0.14, "bush": 0.05, "fern": 0.03, "deadwood": 0.03, "pebbles": 0.05, "ruins": 0.006 }
+	},
+	"highlands": {
+		"id": "highlands",
+		"display_name": "Felsland",
+		"color": "#9a9186",
+		"noise_max": 0.5,
+		"features": { "tree": 0.02, "rock": 0.14 },
+		"decor": { "grass_tuft": 0.04, "deadwood": 0.04, "pebbles": 0.08, "cliff": 0.05, "crystal": 0.03 },
+		"mountains": ["mountain_rocky", "mountain_snowy"]
+	},
+	"snow": {
+		"id": "snow",
+		"display_name": "Schnee",
+		"color": "#e2e8ea",
+		"noise_max": 1.0,
+		"features": {},
+		"decor": { "snow_drift": 0.16, "ice": 0.06 },
+		"mountains": ["mountain_snowy"]
+	}
+}

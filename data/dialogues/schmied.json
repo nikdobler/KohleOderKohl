@@ -1,0 +1,19 @@
+{
+	"npc": { "id": "schmied", "display_name": "Schmied Eisenbart", "archetype": "wortkarger Schmied", "icon": "npc_schmied" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tech_researched", "tech": "smithing" }, "once": true, "priority": 4, "start": "start",
+			"nodes": {
+				"start": { "text": "Eisenbart. Schmied. Ihr wollt Waffen? Gutes Eisen, gutes Feuer, wenig Gerede. Mehr braucht es nicht.", "choices": [
+					{ "text": "Wie viele Waffen schafft Ihr am Tag?", "next": "menge" },
+					{ "text": "Redet Ihr immer so wenig?", "next": "wenig" } ] },
+				"menge": { "text": "Genug. Wenn das Eisen reicht. Sorgt für die Mine, ich sorge für den Rest." },
+				"wenig": { "text": "Ja." }
+			}
+		},
+		{
+			"id": "eisen_knapp", "trigger": { "type": "stock_below", "resource": "iron", "amount": 2 }, "requires_seen": "intro", "once": false, "cooldown_ticks": 150, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Kein Eisen. Hammer kalt. Schmied unglücklich. Drei Sätze — mehr Drama kriegt Ihr von mir nicht." } }
+		}
+	]
+}

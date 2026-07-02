@@ -1,0 +1,247 @@
+{
+	"keep": {
+		"id": "keep",
+		"display_name": "Bergfried",
+		"max_workers": 0,
+		"hp": 120,
+		"icon": "building_keep",
+		"props": ["well"]
+	},
+	"woodcutter": {
+		"id": "woodcutter",
+		"display_name": "Holzfällerhütte",
+		"produces": "wood",
+		"production_per_tick": 1,
+		"max_workers": 1,
+		"cost": { "wood": 4 },
+		"placement": {
+			"biomes": ["grassland", "valley", "hills"],
+			"near": { "feature": "tree", "radius": 3 }
+		},
+		"icon": "building_woodcutter"
+	},
+	"wheat_farm": {
+		"id": "wheat_farm",
+		"display_name": "Weizenfeld",
+		"produces": "wheat",
+		"production_per_tick": 2,
+		"max_workers": 2,
+		"cost": { "wood": 6 },
+		"placement": {
+			"biomes": ["grassland", "valley"]
+		},
+		"icon": "building_wheat_farm",
+		"props": ["haystack"]
+	},
+	"bakery": {
+		"id": "bakery",
+		"display_name": "Bäckerei",
+		"produces": "bread",
+		"production_per_tick": 1,
+		"max_workers": 2,
+		"consumes": { "wheat": 2 },
+		"cost": { "wood": 8 },
+		"placement": {
+			"biomes": ["grassland", "valley"]
+		},
+		"icon": "building_bakery"
+	},
+	"house": {
+		"id": "house",
+		"display_name": "Wohnhaus",
+		"housing_capacity": 4,
+		"max_workers": 0,
+		"cost": { "wood": 5 },
+		"placement": {
+			"biomes": ["grassland", "hills"]
+		},
+		"icon": "building_house",
+		"props": ["fence"]
+	},
+	"quarry": {
+		"id": "quarry",
+		"display_name": "Steinbruch",
+		"produces": "stone",
+		"production_per_tick": 1,
+		"max_workers": 2,
+		"cost": { "wood": 10 },
+		"placement": {
+			"biomes": ["grassland", "valley", "hills", "highlands"],
+			"on_feature": "rock"
+		},
+		"icon": "building_quarry"
+	},
+	"brewery": {
+		"id": "brewery",
+		"display_name": "Brauerei",
+		"produces": "beer",
+		"production_per_tick": 1,
+		"max_workers": 2,
+		"consumes": { "wheat": 2 },
+		"cost": { "wood": 8 },
+		"placement": {
+			"biomes": ["grassland", "valley"]
+		},
+		"icon": "building_brewery"
+	},
+	"wall": {
+		"id": "wall",
+		"display_name": "Mauer",
+		"max_workers": 0,
+		"hp": 60,
+		"cost": { "stone": 2 },
+		"placement": {
+			"biomes": ["grassland", "valley", "hills", "highlands"],
+			"on_feature": "rock_or_none"
+		},
+		"icon": "building_wall"
+	},
+	"tower": {
+		"id": "tower",
+		"display_name": "Wachturm",
+		"max_workers": 0,
+		"hp": 150,
+		"cost": { "stone": 6 },
+		"ranged": { "attack": 5, "range": 5, "requires_tech": "archery" },
+		"placement": {
+			"biomes": ["grassland", "valley", "hills", "highlands"],
+			"on_feature": "rock_or_none"
+		},
+		"icon": "building_tower"
+	},
+	"gate": {
+		"id": "gate",
+		"display_name": "Tor",
+		"max_workers": 0,
+		"hp": 90,
+		"passable": true,
+		"cost": { "stone": 4 },
+		"placement": {
+			"biomes": ["grassland", "valley", "hills", "highlands"],
+			"on_feature": "rock_or_none"
+		},
+		"icon": "building_gate"
+	},
+	"vineyard": {
+		"id": "vineyard",
+		"display_name": "Weinberg",
+		"produces": "grapes",
+		"production_per_tick": 2,
+		"max_workers": 2,
+		"cost": { "wood": 8 },
+		"placement": { "biomes": ["hills", "valley", "grassland"] },
+		"icon": "building_vineyard"
+	},
+	"winery": {
+		"id": "winery",
+		"display_name": "Kelterei",
+		"produces": "wine",
+		"production_per_tick": 1,
+		"max_workers": 2,
+		"consumes": { "grapes": 2 },
+		"cost": { "wood": 10, "stone": 4 },
+		"placement": { "biomes": ["grassland", "valley", "hills"] },
+		"icon": "building_winery"
+	},
+	"iron_mine": {
+		"id": "iron_mine",
+		"display_name": "Eisenmine",
+		"produces": "iron",
+		"production_per_tick": 1,
+		"max_workers": 2,
+		"cost": { "wood": 12 },
+		"placement": {
+			"biomes": ["grassland", "valley", "hills", "highlands"],
+			"on_feature": "rock"
+		},
+		"icon": "building_iron_mine"
+	},
+	"gold_mine": {
+		"id": "gold_mine",
+		"display_name": "Goldmine",
+		"produces": "gold",
+		"production_per_tick": 1,
+		"max_workers": 2,
+		"cost": { "wood": 14 },
+		"placement": {
+			"biomes": ["hills", "highlands"],
+			"on_feature": "rock"
+		},
+		"icon": "building_gold_mine"
+	},
+	"smithy": {
+		"id": "smithy",
+		"display_name": "Schmiede",
+		"produces": "weapons",
+		"production_per_tick": 1,
+		"max_workers": 2,
+		"consumes": { "iron": 2, "wood": 1 },
+		"cost": { "wood": 10, "stone": 6 },
+		"placement": { "biomes": ["grassland", "valley", "hills"] },
+		"icon": "building_smithy"
+	},
+	"armorer": {
+		"id": "armorer",
+		"display_name": "Rüstungsschmiede",
+		"produces": "armor",
+		"production_per_tick": 1,
+		"max_workers": 2,
+		"consumes": { "iron": 3 },
+		"cost": { "wood": 10, "stone": 8 },
+		"placement": { "biomes": ["grassland", "valley", "hills"] },
+		"icon": "building_armorer"
+	},
+	"jeweler": {
+		"id": "jeweler",
+		"display_name": "Goldschmiede",
+		"produces": "jewelry",
+		"production_per_tick": 1,
+		"max_workers": 1,
+		"consumes": { "gold": 2 },
+		"cost": { "wood": 8, "stone": 6 },
+		"placement": { "biomes": ["grassland", "valley"] },
+		"icon": "building_jeweler"
+	},
+	"pig_farm": {
+		"id": "pig_farm",
+		"display_name": "Schweinezucht",
+		"produces": "pig",
+		"production_per_tick": 1,
+		"max_workers": 2,
+		"cost": { "wood": 7 },
+		"placement": { "biomes": ["grassland", "valley"] },
+		"icon": "building_pig_farm"
+	},
+	"butcher": {
+		"id": "butcher",
+		"display_name": "Metzgerei",
+		"produces": "meat",
+		"production_per_tick": 2,
+		"max_workers": 1,
+		"consumes": { "pig": 1 },
+		"cost": { "wood": 9 },
+		"placement": { "biomes": ["grassland", "valley"] },
+		"icon": "building_butcher"
+	},
+	"dairy_farm": {
+		"id": "dairy_farm",
+		"display_name": "Milchhof",
+		"produces": "milk",
+		"production_per_tick": 2,
+		"max_workers": 2,
+		"cost": { "wood": 7 },
+		"placement": { "biomes": ["grassland", "valley"] },
+		"icon": "building_dairy_farm"
+	},
+	"cheesery": {
+		"id": "cheesery",
+		"display_name": "Käserei",
+		"produces": "cheese",
+		"production_per_tick": 1,
+		"max_workers": 1,
+		"consumes": { "milk": 2 },
+		"cost": { "wood": 9 },
+		"placement": { "biomes": ["grassland", "valley"] },
+		"icon": "building_cheesery"
+	}
+}

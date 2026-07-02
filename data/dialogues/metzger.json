@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "metzger", "display_name": "Metzger Knochenhauer", "archetype": "dicker Metzger", "icon": "npc_metzger" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tech_researched", "tech": "processing" }, "once": true, "priority": 4, "start": "start",
+			"nodes": { "start": { "text": "Knochenhauer! Metzger in vierter Generation und Umfang. Endlich eine Metzgerei — ich habe drei Jahre lang nur theoretisch gewurstet. Das zermürbt einen Mann." } }
+		},
+		{
+			"id": "fleisch_lob", "trigger": { "type": "stock_at_least", "resource": "meat", "amount": 30 }, "requires_seen": "intro", "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Dreissig Fleisch im Lager! Ich habe eine Träne verdrückt und dann ein Kotelett. Man muss die Gefühle ja irgendwie runterspülen." } }
+		}
+	]
+}

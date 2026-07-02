@@ -1,0 +1,9 @@
+{
+	"id": "handelsembargo", "display_name": "Das Handelsembargo", "description": "Die Nachbarn liefern nichts mehr. Was Ihr braucht, macht Ihr jetzt selbst.",
+	"start": { "stock": { "wood": 5 }, "researched": [], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Füllt das Lager: 100 Holz und 60 Brot.", "trigger": { "type": "stock_at_least", "resource": "wood", "amount": 100 } },
+	"events": [
+		{ "id": "embargo", "trigger": { "type": "tick_reached", "tick": 40 }, "message": "Embargo verschärft! Die Hälfte des Holzlagers wurde beschlagnahmt.", "effects": [ { "type": "stock_multiply", "resource": "wood", "factor": 0.5 }, { "type": "satisfaction_add", "amount": -8 } ] },
+		{ "id": "schmuggler", "trigger": { "type": "tick_reached", "tick": 120 }, "message": "Ein Schmuggler bietet Ware an — gegen einen Aufpreis, versteht sich. 15 Holz sind es trotzdem.", "effects": [ { "type": "stock_add", "resource": "wood", "amount": 15 } ] }
+	]
+}

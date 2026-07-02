@@ -1,0 +1,62 @@
+{
+	"deer": {
+		"id": "deer",
+		"display_name": "Reh",
+		"category": "wild",
+		"habitat": ["valley", "grassland", "hills"]
+	},
+	"rabbit": {
+		"id": "rabbit",
+		"display_name": "Hase",
+		"category": "wild",
+		"habitat": ["valley", "grassland"]
+	},
+	"fox": {
+		"id": "fox",
+		"display_name": "Fuchs",
+		"category": "wild",
+		"habitat": ["grassland", "hills"]
+	},
+	"boar": {
+		"id": "boar",
+		"display_name": "Wildschwein",
+		"category": "wild",
+		"habitat": ["hills", "highlands"]
+	},
+	"bird": {
+		"id": "bird",
+		"display_name": "Vogel",
+		"category": "wild",
+		"habitat": ["valley", "grassland", "hills", "highlands"]
+	},
+	"frog": {
+		"id": "frog",
+		"display_name": "Frosch",
+		"category": "wild",
+		"habitat": ["swamp"]
+	},
+	"butterfly": {
+		"id": "butterfly",
+		"display_name": "Schmetterling",
+		"category": "wild",
+		"habitat": ["valley", "grassland"]
+	},
+	"cow": {
+		"id": "cow",
+		"display_name": "Kuh",
+		"category": "livestock",
+		"near_building": "wheat_farm"
+	},
+	"sheep": {
+		"id": "sheep",
+		"display_name": "Schaf",
+		"category": "livestock",
+		"near_building": "house"
+	},
+	"chicken": {
+		"id": "chicken",
+		"display_name": "Huhn",
+		"category": "livestock",
+		"near_building": "house"
+	}
+}

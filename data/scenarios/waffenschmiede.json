@@ -1,0 +1,9 @@
+{
+	"id": "waffenschmiede", "display_name": "Der Waffenauftrag", "description": "Der König braucht Waffen. Diskretion zugesichert, Bezahlung angedeutet.",
+	"start": { "stock": { "wood": 60, "stone": 30 }, "researched": ["stonemasonry", "mining", "smithing"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"goal": { "description": "Schmiedet 20 Waffen für die Krone.", "trigger": { "type": "stock_at_least", "resource": "weapons", "amount": 20 } },
+	"events": [
+		{ "id": "eilauftrag", "trigger": { "type": "stock_at_least", "resource": "weapons", "amount": 10 }, "message": "Ein Eilbote: Der König braucht ALLES bis gestern. Königliche Zeitrechnung.", "effects": [ { "type": "satisfaction_add", "amount": -5 } ] },
+		{ "id": "spione", "trigger": { "type": "tick_reached", "tick": 100 }, "message": "Feindliche Spione haben von den Waffen gehört. Sie wollen Muster. Gewaltsam.", "effects": [ { "type": "wave", "size": 3 } ] }
+	]
+}

@@ -1,0 +1,9 @@
+{
+	"id": "grenzland", "display_name": "Das Grenzland", "description": "Der Feind sitzt unbequem nah. Einer von euch beiden ist hier zu viel.",
+	"start": { "stock": { "wood": 50, "stone": 30, "bread": 30 }, "researched": ["stonemasonry"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"enemy": { "keep_offset": [10, 10], "wave_interval_ticks": 25, "wave_size": 2, "keep_hp": 100, "defenders": 3 },
+	"goal": { "description": "Erobert den feindlichen Bergfried — er steht direkt vor der Tür.", "trigger": { "type": "combat_status", "status": "victory" } },
+	"events": [
+		{ "id": "grenzstreit", "trigger": { "type": "tick_reached", "tick": 15 }, "message": "Grenzstreit eskaliert: Der Feind hat den Grenzstein versetzt. Um zwölf Meter. Auf Euren Acker.", "effects": [ { "type": "satisfaction_add", "amount": -5 } ] }
+	]
+}

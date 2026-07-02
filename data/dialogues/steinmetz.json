@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "steinmetz", "display_name": "Steinmetz Brocken", "archetype": "stoischer Steinmetz", "icon": "npc_steinmetz" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tech_researched", "tech": "stonemasonry" }, "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Brocken. Steinmetz. Der Baumeister redet über Stein, ich rede MIT Stein. Er antwortet selten, aber er widerspricht auch nie. Beste Arbeitsbeziehung meines Lebens." } }
+		},
+		{
+			"id": "steinsegen", "trigger": { "type": "stock_at_least", "resource": "stone", "amount": 50 }, "requires_seen": "intro", "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Fünfzig Stein im Lager. Ich habe jeden Einzelnen begutachtet. Der dreiundzwanzigste ist mein Liebling — feine Maserung, guter Charakter. Verbaut ihn irgendwo, wo man ihn sieht." } }
+		}
+	]
+}

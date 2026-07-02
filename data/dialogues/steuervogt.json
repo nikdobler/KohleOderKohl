@@ -1,0 +1,19 @@
+{
+	"npc": { "id": "steuervogt", "display_name": "Vogt Grimbald", "archetype": "geiziger Steuervogt", "icon": "npc_steuervogt" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "tick_reached", "tick": 30 }, "once": true, "priority": 4, "start": "start",
+			"nodes": {
+				"start": { "text": "Grimbald, Euer Steuervogt. Ich zähle alles: Holz, Brot, Steine — und Ausreden. Von Letzteren haben wir bereits einen Überschuss.", "choices": [
+					{ "text": "Wie steht es um die Kasse?", "next": "kasse" },
+					{ "text": "Zählt Ihr auch Freunde?", "next": "freunde" } ] },
+				"kasse": { "text": "Die Kasse ist ein Fass. Unten ein Loch, oben ein Adliger. Ich empfehle: weniger Feste, mehr Steinbrüche." },
+				"freunde": { "text": "Einen halben. Er schuldet mir drei Heller, also zähle ich ihn unter Aussenstände." }
+			}
+		},
+		{
+			"id": "reichtum", "trigger": { "type": "stock_above", "resource": "wood", "amount": 120 }, "requires_seen": "intro", "once": true, "priority": 3, "start": "start",
+			"nodes": { "start": { "text": "Über hundert Stämme im Lager! Ich habe vor Rührung fast eine Träne vergossen. Fast. Tränen sind schliesslich auch Flüssigkeitsverlust." } }
+		}
+	]
+}

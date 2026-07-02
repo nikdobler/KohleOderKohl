@@ -1,0 +1,9 @@
+{
+	"id": "krieg", "display_name": "Der Krieg", "description": "Diplomatie ist gescheitert. Jetzt sprechen die Bergfriede.",
+	"start": { "stock": { "wood": 60, "stone": 40, "bread": 40 }, "researched": ["stonemasonry", "fortification", "archery"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"enemy": { "wave_interval_ticks": 35, "wave_size": 2, "units": ["raider", "bandit_archer"], "keep_hp": 120, "defenders": 4, "researched": ["stonemasonry", "fortification", "archery"] },
+	"goal": { "description": "Erobert den feindlichen Bergfried.", "trigger": { "type": "combat_status", "status": "victory" } },
+	"events": [
+		{ "id": "kriegserklaerung", "trigger": { "type": "tick_reached", "tick": 20 }, "message": "Die Kriegserklärung ist da. Auf teurem Pergament — der Feind hat offensichtlich zu viel Gold.", "effects": [ { "type": "wave", "size": 2 } ] }
+	]
+}

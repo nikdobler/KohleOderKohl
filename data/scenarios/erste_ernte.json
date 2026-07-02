@@ -1,0 +1,40 @@
+{
+	"id": "erste_ernte",
+	"display_name": "Die erste Ernte",
+	"description": "Ein neuer Herr, ein alter Sumpf und ein Winter, der bestimmt kommt.",
+	"start": {
+		"stock": { "wood": 10 },
+		"researched": [],
+		"buildings": [
+			{ "id": "keep", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "woodcutter", "workers": 1 },
+			{ "id": "wheat_farm", "workers": 2 },
+			{ "id": "bakery", "workers": 1 }
+		]
+	},
+	"goal": {
+		"description": "Sammelt 40 Brot als Wintervorrat.",
+		"trigger": { "type": "stock_at_least", "resource": "bread", "amount": 40 }
+	},
+	"events": [
+		{
+			"id": "ernteausfall",
+			"trigger": { "type": "tick_reached", "tick": 45 },
+			"message": "Ernteausfall! Spätfrost vernichtet den gelagerten Weizen. Das Volk ist wenig begeistert.",
+			"effects": [
+				{ "type": "stock_multiply", "resource": "wheat", "factor": 0.0 },
+				{ "type": "satisfaction_add", "amount": -10 }
+			]
+		},
+		{
+			"id": "handelsgesandter",
+			"trigger": { "type": "tick_reached", "tick": 90 },
+			"message": "Ein Handelsgesandter aus dem Süden lässt 20 Stamm Holz da — als «Geste». Was er wohl will?",
+			"effects": [
+				{ "type": "stock_add", "resource": "wood", "amount": 20 }
+			]
+		}
+	]
+}

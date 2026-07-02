@@ -1,0 +1,10 @@
+{
+	"unit": "raider",
+	"units": ["raider", "raider", "bandit_archer"],
+	"defenders": 2,
+	"wave_interval_ticks": 45,
+	"wave_size": 2,
+	"keep_hp": 80,
+	"keep_offset": [16, 16],
+	"researched": ["stonemasonry"]
+}

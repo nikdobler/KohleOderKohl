@@ -1,0 +1,94 @@
+{
+	"npc": {
+		"id": "baumeister",
+		"display_name": "Baumeister Balduin",
+		"archetype": "noergelnder Baumeister",
+		"icon": "npc_baumeister"
+	},
+	"dialogues": [
+		{
+			"id": "intro",
+			"trigger": { "type": "tick_reached", "tick": 5 },
+			"once": true,
+			"priority": 10,
+			"start": "start",
+			"nodes": {
+				"start": {
+					"text": "Ihr seid also der Neue. Balduin, Baumeister — dritte Generation, zweite Wahl, sagt mein Vater. Zum Bergfried: Das Fundament steht auf Sumpf. Habe ich Eurem Vorgänger gesagt. Und dessen Vorgänger. Beide übrigens sehr tot.",
+					"choices": [
+						{ "text": "Dann baut ihn halt stabiler.", "next": "grumble" },
+						{ "text": "Versinkt hier öfter mal eine Burg im Sumpf?", "next": "sumpf" }
+					]
+				},
+				"grumble": {
+					"text": "Stabiler. Natürlich. Aus was denn — aus Meinungen? Schafft Holz ran, dann reden wir. Und zwar trocken gelagertes, nicht das grüne Zeug vom letzten Mal."
+				},
+				"sumpf": {
+					"text": "Die erste versank. Die zweite versank. Die dritte brannte ab, fiel um und versank DANN. Aber die vierte — die vierte steht! Grösstenteils. Betretet einfach den Ostflügel nicht."
+				}
+			}
+		},
+		{
+			"id": "wood_low",
+			"trigger": { "type": "stock_below", "resource": "wood", "amount": 5 },
+			"requires_seen": "intro",
+			"once": false,
+			"cooldown_ticks": 90,
+			"priority": 5,
+			"start": "start",
+			"nodes": {
+				"start": {
+					"text": "Fünf Stämme. FÜNF. Damit baue ich Euch einen Zaun, und zwar einen enttäuschenden. Schickt mehr Leute in den Wald, oder ich fange an, Möbel zu verheizen. Eure zuerst."
+				}
+			}
+		},
+		{
+			"id": "stone_unlocked",
+			"trigger": { "type": "tech_researched", "tech": "stonemasonry" },
+			"once": true,
+			"priority": 6,
+			"start": "start",
+			"nodes": {
+				"start": {
+					"text": "Stein! Sehr gut. Holz arbeitet, sagt man. Stimmt — es fault, es brennt, es wird von Käfern gefressen. Stein hingegen liegt einfach nur da und hält. Endlich ein Baustoff mit Arbeitsmoral."
+				}
+			}
+		},
+		{
+			"id": "victory",
+			"trigger": { "type": "combat_status", "status": "victory" },
+			"once": true,
+			"priority": 8,
+			"start": "start",
+			"nodes": {
+				"start": {
+					"text": "Der feindliche Bergfried ist eingestürzt, hört man. Kein Wunder, bei DER Mauertechnik — Fugen wie Scheunentore. Trotzdem, äh... Glückwunsch. Aber wehe, Ihr erwartet jetzt einen Triumphbogen.",
+					"choices": [
+						{ "text": "Ein kleiner Triumphbogen wäre schon schön.", "next": "bogen" },
+						{ "text": "Euer Lob klingt fast wie Kritik.", "next": "lob" }
+					]
+				},
+				"bogen": {
+					"text": "Ein KLEINER Triumphbogen. Soll ich auch gleich eine halbe Treppe bauen? Einen Bogen macht man richtig oder gar nicht. Kommt wieder, wenn Ihr Stein habt. Viel Stein."
+				},
+				"lob": {
+					"text": "Lob ist, wenn ich nichts sage. Merkt Euch das, dann kommen wir gut miteinander aus."
+				}
+			}
+		},
+		{
+			"id": "people_grumpy",
+			"trigger": { "type": "satisfaction_below", "amount": 30 },
+			"requires_seen": "intro",
+			"once": false,
+			"cooldown_ticks": 120,
+			"priority": 7,
+			"start": "start",
+			"nodes": {
+				"start": {
+					"text": "Die Leute murren, es gebe kein Brot. Ich sage: Besser ein leerer Magen als ein Dach auf selbigem. Hat niemanden getröstet. Vielleicht besetzt Ihr einfach mal die Bäckerei. Nur so eine Idee — von einem, der ausschliesslich Gebäude versteht."
+				}
+			}
+		}
+	]
+}

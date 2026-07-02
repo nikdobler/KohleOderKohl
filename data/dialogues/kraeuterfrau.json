@@ -1,0 +1,13 @@
+{
+	"npc": { "id": "kraeuterfrau", "display_name": "Kräuterfrau Irmel", "archetype": "kauzige Kräuterfrau", "icon": "npc_kraeuterfrau" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "satisfaction_below", "amount": 35 }, "once": true, "priority": 4, "start": "start",
+			"nodes": { "start": { "text": "Irmel. Ich habe Kräuter gegen fast alles: Husten, Gicht, schlechte Laune. Gegen schlechte Herrschaft habe ich nur Baldrian — den nehme ich allerdings selbst." } }
+		},
+		{
+			"id": "besserung", "trigger": { "type": "satisfaction_at_least", "amount": 60 }, "requires_seen": "intro", "once": true, "priority": 2, "start": "start",
+			"nodes": { "start": { "text": "Die Laune steigt, die Nachfrage nach meinem Sorgen-Tee sinkt. Geschäftlich eine Katastrophe, menschlich ganz erfreulich. Ich verkrafte es. Mit Baldrian." } }
+		}
+	]
+}

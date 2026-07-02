@@ -1,0 +1,19 @@
+{
+	"npc": { "id": "henker", "display_name": "Henker Gnadenreich", "archetype": "arbeitsloser Henker", "icon": "npc_henker" },
+	"dialogues": [
+		{
+			"id": "intro", "trigger": { "type": "satisfaction_below", "amount": 25 }, "once": true, "priority": 4, "start": "start",
+			"nodes": {
+				"start": { "text": "Gnadenreich, Henker. Bei DER Volksstimmung dachte ich, ich stelle mich schon mal vor. Rein präventiv. Ich arbeite übrigens sauber, schnell und mit Kundenfeedback — na ja, mit kurzem Kundenfeedback.", "choices": [
+					{ "text": "Hier wird niemand geköpft.", "next": "pazifist" },
+					{ "text": "Was macht ein Henker in Friedenszeiten?", "next": "frieden" } ] },
+				"pazifist": { "text": "Löblich! Dann sattle ich um auf Holzhacken. Der Schwung ist derselbe, nur das Publikum ist enttäuschender." },
+				"frieden": { "text": "Gemüse schnitzen. Radieschen-Rosen, hauptsächlich. Die Handkante bleibt geschmeidig und niemand beschwert sich. Radieschen sind sehr gefasst." }
+			}
+		},
+		{
+			"id": "aufschwung", "trigger": { "type": "satisfaction_at_least", "amount": 55 }, "requires_seen": "intro", "once": true, "priority": 2, "start": "start",
+			"nodes": { "start": { "text": "Die Stimmung steigt, mein Geschäft sinkt. Ich habe jetzt einen Gemüsestand. 'Zum letzten Schnitt'. Der Name war noch übrig." } }
+		}
+	]
+}
