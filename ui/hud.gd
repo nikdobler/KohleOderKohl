@@ -8,6 +8,15 @@ const _WORK_NAMES: Array = ["kurz", "normal", "lang"]
 const _TAX_NAMES: Array = ["keine", "moderat", "hoch"]
 ## Handels-Losgroesse am Marktplatz (M13).
 const _TRADE_LOT: int = 5
+## Maximale Eintraege der Chronik (aelteste fliegen raus, M15).
+const _LOG_MAX: int = 80
+## Chronik-Farben je Kategorie.
+const _LOG_COLORS: Dictionary = {
+	"Kampf": Color(1.0, 0.75, 0.7),
+	"Ereignis": Color(1.0, 0.9, 0.6),
+	"Hinweis": Color(0.75, 0.75, 0.75),
+	"System": Color(0.7, 0.85, 1.0),
+}
 
 @onready var _scenario_label: Label = $Panel/Scroll/VBox/ScenarioLabel
 @onready var _resources_box: VBoxContainer = $Panel/Scroll/VBox/ResourcesBox
@@ -48,6 +57,10 @@ const _TRADE_LOT: int = 5
 @onready var _story_title: Label = $StoryPanel/VBox/StoryTitle
 @onready var _story_text: Label = $StoryPanel/VBox/StoryScroll/StoryText
 @onready var _story_button: Button = $StoryPanel/VBox/StoryButton
+@onready var _log_panel: PanelContainer = $LogPanel
+@onready var _log_scroll: ScrollContainer = $LogPanel/VBox/LogScroll
+@onready var _log_list: VBoxContainer = $LogPanel/VBox/LogScroll/LogList
+@onready var _log_toggle: Button = $LogPanel/VBox/Header/LogToggle
 
 var _resource_labels: Dictionary = {}  # StringName -> Label
 var _worker_labels: Dictionary = {}    # StringName -> Label
@@ -76,6 +89,7 @@ func _ready() -> void:
 	EventBus.quest_state_changed.connect(_on_quest_state_changed)
 	EventBus.story_shown.connect(_show_story)
 	_story_button.pressed.connect(_on_story_closed)
+	_connect_log()
 	$GameOverPanel/VBox/ResultButtons/ContinueButton.pressed.connect(
 		func() -> void: _game_over_panel.visible = false)
 	$GameOverPanel/VBox/ResultButtons/ToMenuButton.pressed.connect(func() -> void:
@@ -193,7 +207,7 @@ func _on_game_loaded() -> void:
 		dict.clear()
 	_game_over_panel.visible = false
 	_story_panel.visible = false
-	for box in [_resources_box, _buildings_box, _research_box, _build_box, _recruit_box, _market_box, _quest_box]:
+	for box in [_resources_box, _buildings_box, _research_box, _build_box, _recruit_box, _market_box, _quest_box, _log_list]:
 		for child in box.get_children():
 			# Nie free() auf moeglicherweise emittierende Buttons.
 			box.remove_child(child)
@@ -424,6 +438,41 @@ func _building_name(id: StringName) -> String:
 
 func _flash(message: String) -> void:
 	_status_label.text = message
+
+## Chronik (M15): sammelt alle Meldungen dauerhaft — die Statuszeile bleibt
+## der Schnell-Flash, hier geht nichts mehr verloren.
+func _connect_log() -> void:
+	EventBus.combat_event.connect(func(m: String) -> void: _log("Kampf", m))
+	EventBus.scenario_event.connect(func(m: String) -> void: _log("Ereignis", m))
+	EventBus.build_failed.connect(func(m: String) -> void: _log("Hinweis", m))
+	EventBus.research_failed.connect(func(m: String) -> void: _log("Hinweis", m))
+	EventBus.game_saved.connect(func() -> void: _log("System", "Spielstand gespeichert."))
+	_log_toggle.pressed.connect(_toggle_log)
+
+## Haengt einen Eintrag an, kappt bei _LOG_MAX und rollt ans Ende.
+func _log(category: String, message: String) -> void:
+	if message.is_empty():
+		return
+	var label := Label.new()
+	label.text = "[%s] %s" % [category, message]
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.add_theme_color_override(&"font_color", _LOG_COLORS.get(category, Color.WHITE))
+	_log_list.add_child(label)
+	while _log_list.get_child_count() > _LOG_MAX:
+		var oldest: Node = _log_list.get_child(0)
+		_log_list.remove_child(oldest)
+		oldest.queue_free()
+	_scroll_log_to_end.call_deferred()
+
+## Ans Ende rollen — erst nach dem Layout-Frame ist max_value aktuell.
+func _scroll_log_to_end() -> void:
+	_log_scroll.scroll_vertical = int(_log_scroll.get_v_scroll_bar().max_value)
+
+## Chronik ein-/ausklappen (nur der Titelbalken bleibt sichtbar).
+func _toggle_log() -> void:
+	_log_scroll.visible = not _log_scroll.visible
+	_log_toggle.text = "–" if _log_scroll.visible else "+"
+	_log_panel.offset_bottom = 280.0 if _log_scroll.visible else 76.0
 
 ## Markt-Sektion (M13): eine Handelszeile je Ware mit Preis
 ## ("+5" kauft zum doppelten, "−5" verkauft zum einfachen Grundpreis).
