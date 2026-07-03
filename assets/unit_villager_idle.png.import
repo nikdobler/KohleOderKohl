@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cqw5tffcxeyje"
-path="res://.godot/imported/unit_villager_walk.png-45ef8b7c0a29908e51edac46ba6e4373.ctex"
+uid="uid://dytb8skfxn02w"
+path="res://.godot/imported/unit_villager_idle.png-308a3b817a6ee2159ad5c1bf916f7f61.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/unit_villager_walk.png"
-dest_files=["res://.godot/imported/unit_villager_walk.png-45ef8b7c0a29908e51edac46ba6e4373.ctex"]
+source_file="res://assets/unit_villager_idle.png"
+dest_files=["res://.godot/imported/unit_villager_idle.png-308a3b817a6ee2159ad5c1bf916f7f61.ctex"]
 
 [params]
 
