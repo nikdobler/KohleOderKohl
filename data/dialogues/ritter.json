@@ -2,6 +2,16 @@
 	"npc": { "id": "ritter", "display_name": "Ritter Kunz von Prahlfels", "archetype": "grosssprecherischer Ritter", "icon": "npc_ritter" },
 	"dialogues": [
 		{
+			"id": "kampagne_wache", "trigger": { "type": "scripted" }, "once": true, "priority": 9, "start": "start",
+			"nodes": {
+				"start": { "text": "Kunz von Prahlfels, zu Euren Diensten! Die Krone schickt mich — freiwillig, versteht sich. Zur Lage: Diese «Räuber» führen neue Klingen und alte Befehle. Bezahlt werden sie aus einer Schatulle mit schwarzem Siegel. Dreihundert Züge, sagt mein Kundschafter. Dann geht ihnen der Sold aus.", "choices": [
+					{ "text": "Dreihundert Züge? Dann bauen wir Mauern.", "next": "mauern" },
+					{ "text": "Und wo werdet Ihr stehen, Ritter?", "next": "vorne" } ] },
+				"mauern": { "text": "Kluger Zug! Mauern sind wie Rüstungen für Städte — und ich weiss viel über Rüstungen, meine hat vierzehn Schnallen. Baut auch einen Turm. Von Türmen aus sehen selbst Niederlagen ordentlich aus." },
+				"vorne": { "text": "Vorne! Immer vorne! Wobei «vorne» taktisch flexibel ist. Beim Buffet zum Beispiel bin ich stets vorne, und das ist erwiesenermassen die gefährlichste Stelle des Lagers." }
+			}
+		},
+		{
 			"id": "intro", "trigger": { "type": "tick_reached", "tick": 60 }, "once": true, "priority": 4, "start": "start",
 			"nodes": {
 				"start": { "text": "Kunz von Prahlfels, Bezwinger von elf Turnieren! Nun ja — Teilnehmer von elf Turnieren. Bezwungen habe ich hauptsächlich das Buffet.", "choices": [

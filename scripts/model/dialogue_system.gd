@@ -46,6 +46,18 @@ func check_triggers(state: Dictionary) -> Dictionary:
 	_begin(best_npc, best, state)
 	return {"npc": _npcs[best_npc]["npc"], "node": _current_node()}
 
+## Startet einen bestimmten Dialog skriptgesteuert (Kampagnen-Events, M14) —
+## unabhaengig von dessen Trigger (auch Typ "scripted"); ein laufender Dialog
+## wird ersetzt, denn Story-Momente haben Vorrang.
+## Rueckgabe wie bei check_triggers, {} wenn der Dialog fehlt.
+func force_start(npc_id: String, dialogue_id: String, state: Dictionary) -> Dictionary:
+	for dialogue in _npcs.get(npc_id, {}).get("dialogues", []):
+		if String(dialogue.get("id", "")) == dialogue_id:
+			_begin(npc_id, dialogue, state)
+			return {"npc": _npcs[npc_id]["npc"], "node": _current_node()}
+	push_warning("DialogueSystem: Dialog '%s/%s' fehlt." % [npc_id, dialogue_id])
+	return {}
+
 ## Schaltet weiter: [param choice_index] waehlt eine Antwortoption
 ## (-1 = einfaches "Weiter" bei Knoten ohne Optionen).
 ## Rueckgabe: naechster Knoten wie bei check_triggers, {} wenn beendet.

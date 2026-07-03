@@ -40,13 +40,20 @@ const _TRADE_LOT: int = 5
 @onready var _dialogue_text: Label = $DialoguePanel/HBox/VBox/TextLabel
 @onready var _dialogue_choices: VBoxContainer = $DialoguePanel/HBox/VBox/ChoicesBox
 @onready var _scenario_menu: PanelContainer = $ScenarioMenu
-@onready var _scenario_list: VBoxContainer = $ScenarioMenu/VBox/MenuScroll/ScenarioList
+@onready var _campaign_list: VBoxContainer = $ScenarioMenu/VBox/MenuScroll/MenuVBox/CampaignList
+@onready var _scenario_list: VBoxContainer = $ScenarioMenu/VBox/MenuScroll/MenuVBox/ScenarioList
 @onready var _menu_close: Button = $ScenarioMenu/VBox/CloseButton
+@onready var _quest_box: VBoxContainer = $Panel/Scroll/VBox/QuestBox
+@onready var _story_panel: PanelContainer = $StoryPanel
+@onready var _story_title: Label = $StoryPanel/VBox/StoryTitle
+@onready var _story_text: Label = $StoryPanel/VBox/StoryScroll/StoryText
+@onready var _story_button: Button = $StoryPanel/VBox/StoryButton
 
 var _resource_labels: Dictionary = {}  # StringName -> Label
 var _worker_labels: Dictionary = {}    # StringName -> Label
 var _tech_buttons: Dictionary = {}     # StringName -> Button
 var _combat_over := false
+var _story_opens_menu := false  # nach dem Story-Text zur Kapitelwahl? (M14)
 
 func _ready() -> void:
 	_save_button.pressed.connect(func() -> void: EventBus.save_requested.emit())
@@ -65,6 +72,10 @@ func _ready() -> void:
 	EventBus.build_failed.connect(_flash)
 	EventBus.policy_changed.connect(_on_policy_changed)
 	EventBus.market_available.connect(_on_market_available)
+	EventBus.campaign_state_changed.connect(_on_campaign_state_changed)
+	EventBus.quest_state_changed.connect(_on_quest_state_changed)
+	EventBus.story_shown.connect(_show_story)
+	_story_button.pressed.connect(_on_story_closed)
 	$GameOverPanel/VBox/ResultButtons/ContinueButton.pressed.connect(
 		func() -> void: _game_over_panel.visible = false)
 	$GameOverPanel/VBox/ResultButtons/ToMenuButton.pressed.connect(func() -> void:
@@ -85,9 +96,12 @@ func _ready() -> void:
 	_set_menu_visible.call_deferred(true)  # Spielstart: Szenario waehlen
 
 ## Szenario-Menue (M12): eine Zeile je Szenario aus der Datenbank.
+## Kampagnen-Kapitel (campaign_only) gehoeren in die Kampagnen-Sektion.
 func _build_scenario_menu() -> void:
 	for scenario_id in Database.scenarios:
 		var def: Dictionary = Database.scenarios[scenario_id]
+		if def.get("campaign_only", false):
+			continue
 		var button := Button.new()
 		button.text = "%s — %s" % [def.get("display_name", scenario_id), def.get("description", "")]
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -101,6 +115,58 @@ func _build_scenario_menu() -> void:
 func _set_menu_visible(menu_visible: bool) -> void:
 	_scenario_menu.visible = menu_visible
 	EventBus.scenario_menu_visible.emit(menu_visible)
+
+## Kampagnen-Sektion im Menue (M14): ein Knopf je Kapitel; gesperrte Kapitel
+## bleiben deaktiviert, abgeschlossene bekommen ein Haekchen.
+func _on_campaign_state_changed(chapters: Array) -> void:
+	for child in _campaign_list.get_children():
+		_campaign_list.remove_child(child)
+		child.queue_free()
+	for entry in chapters:
+		var button := Button.new()
+		var title: String = entry.get("title", "")
+		if entry.get("completed", false):
+			title += " ✓"
+		elif not entry.get("unlocked", false):
+			title += " (gesperrt)"
+		button.text = title
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button.disabled = not entry.get("unlocked", false)
+		var id: String = entry.get("id", "")
+		# Erst Menue schliessen, dann starten: der Controller zeigt sofort das
+		# Intro (story_shown pausiert wieder) — umgekehrt wuerde das Schliessen
+		# die Story-Pause gleich wieder aufheben.
+		button.pressed.connect(func() -> void:
+			_set_menu_visible(false)
+			EventBus.campaign_chapter_selected.emit(id))
+		_campaign_list.add_child(button)
+
+## Quest-Log (M14): eine Zeile je Auftrag des laufenden Szenarios.
+func _on_quest_state_changed(quests: Array) -> void:
+	for child in _quest_box.get_children():
+		_quest_box.remove_child(child)
+		child.queue_free()
+	for quest in quests:
+		var label := Label.new()
+		label.text = "%s %s" % ["☑" if quest.get("done", false) else "☐", quest.get("description", "")]
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_quest_box.add_child(label)
+
+## Story-Panel (M14): Kapitel-Intro/-Outro; pausiert das Spiel beim Lesen.
+func _show_story(title: String, text: String, open_menu_after: bool) -> void:
+	_story_opens_menu = open_menu_after
+	_story_title.text = title
+	_story_text.text = text
+	_story_panel.visible = true
+	EventBus.scenario_menu_visible.emit(true)  # Tick anhalten
+
+func _on_story_closed() -> void:
+	_story_panel.visible = false
+	if _story_opens_menu:
+		_set_menu_visible(true)  # Kapitelwahl: das naechste Kapitel ist offen
+	else:
+		EventBus.scenario_menu_visible.emit(false)
 
 func _connect_policy_buttons() -> void:
 	$Panel/Scroll/VBox/RationRow/RationMinus.pressed.connect(
@@ -126,7 +192,8 @@ func _on_game_loaded() -> void:
 	for dict in [_resource_labels, _worker_labels, _tech_buttons]:
 		dict.clear()
 	_game_over_panel.visible = false
-	for box in [_resources_box, _buildings_box, _research_box, _build_box, _recruit_box, _market_box]:
+	_story_panel.visible = false
+	for box in [_resources_box, _buildings_box, _research_box, _build_box, _recruit_box, _market_box, _quest_box]:
 		for child in box.get_children():
 			# Nie free() auf moeglicherweise emittierende Buttons.
 			box.remove_child(child)

@@ -101,6 +101,19 @@ signal research_progress(tech_id: StringName, ratio: float)
 ## UI -> Controller: neues Spiel mit diesem Szenario starten (M12).
 signal scenario_selected(scenario_id: String)
 
+## UI -> Controller: dieses Kampagnen-Kapitel starten (M14).
+signal campaign_chapter_selected(chapter_id: String)
+
+## Controller -> UI: Kapitel-Uebersicht ([{id, title, unlocked, completed}]).
+signal campaign_state_changed(chapters: Array)
+
+## Controller -> UI: Quest-Log des Szenarios ([{description, done}]).
+signal quest_state_changed(quests: Array)
+
+## Controller -> UI: Story-Text anzeigen (Kapitel-Intro/-Outro);
+## [param open_menu_after] oeffnet nach dem Schliessen die Kapitelwahl.
+signal story_shown(title: String, text: String, open_menu_after: bool)
+
 ## UI -> Controller: Szenario-Menue offen? (pausiert den Tick).
 signal scenario_menu_visible(visible: bool)
 

@@ -1,0 +1,72 @@
+{
+	"id": "kampagne_04_muenze",
+	"display_name": "Kampagne 4: Markt und Münze",
+	"description": "60 Goldstücke für die Krone — Grimbald hat bereits vier Tabellen.",
+	"campaign_only": true,
+	"start": {
+		"stock": {
+			"wood": 40,
+			"stone": 25,
+			"bread": 25
+		},
+		"researched": [ "stonemasonry", "mining" ],
+		"buildings": [
+			{ "id": "keep", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "woodcutter", "workers": 1 },
+			{ "id": "wheat_farm", "workers": 2 },
+			{ "id": "bakery", "workers": 1 },
+			{ "id": "gold_mine", "workers": 1 }
+		]
+	},
+	"goal": {
+		"description": "Bringt 60 Gold in die Truhe — der Steuerbote kennt kein Erbarmen.",
+		"trigger": { "type": "stock_at_least", "resource": "gold", "amount": 60 }
+	},
+	"quests": [
+		{
+			"id": "handel",
+			"description": "Erforscht den Handel (Belohnung: 10 Gold).",
+			"trigger": { "type": "tech_researched", "tech": "trade" },
+			"reward": [ { "type": "stock_add", "resource": "gold", "amount": 10 } ]
+		},
+		{
+			"id": "marktplatz",
+			"description": "Errichtet einen Marktplatz (Belohnung: 10 Gold).",
+			"trigger": { "type": "building_at_least", "building": "market", "amount": 1 },
+			"reward": [ { "type": "stock_add", "resource": "gold", "amount": 10 } ]
+		},
+		{
+			"id": "goldschmiede",
+			"description": "Erforscht die Goldschmiedekunst (Belohnung: 15 Gold).",
+			"trigger": { "type": "tech_researched", "tech": "goldsmithing" },
+			"reward": [ { "type": "stock_add", "resource": "gold", "amount": 15 } ]
+		}
+	],
+	"events": [
+		{
+			"id": "grimbald_auftritt",
+			"trigger": { "type": "tick_reached", "tick": 4 },
+			"message": "Vogt Grimbald rückt an — mit Schreibpult, Siegelwachs und einem Blick, der Rabatte verweigert.",
+			"effects": [ { "type": "dialogue", "npc": "steuervogt", "dialogue": "kampagne_steuern" } ]
+		},
+		{
+			"id": "handelsgesandter",
+			"trigger": { "type": "tick_reached", "tick": 95 },
+			"message": "Ein Handelsgesandter zahlt 10 Gold Wegzoll — freiwillig, was alle nervös macht.",
+			"effects": [ { "type": "stock_add", "resource": "gold", "amount": 10 } ]
+		},
+		{
+			"id": "strassenraeuber",
+			"trigger": { "type": "tick_reached", "tick": 140 },
+			"message": "Strassenräuber haben vom Gold gehört — und halten es für herrenlos!",
+			"effects": [ { "type": "wave", "size": 2 } ]
+		}
+	],
+	"enemy": {
+		"wave_interval_ticks": 90,
+		"wave_size": 2
+	}
+}

@@ -2,6 +2,17 @@
 	"npc": { "id": "winzer", "display_name": "Winzer Traubert", "archetype": "leidenschaftlicher Winzer", "icon": "npc_winzer" },
 	"dialogues": [
 		{
+			"id": "kampagne_rebe", "trigger": { "type": "scripted" }, "once": true, "priority": 9, "start": "start",
+			"nodes": {
+				"start": { "text": "Traubert, Winzer — und im Moment ein Mann am Rand des Fasses. Der KÖNIG kommt! Zwanzig Fässer erwartet der Hof, und wir haben: null. Aber verzagt nicht — dieser Boden hat Terroir. Sumpf-Terroir. Das ist eine Nische!", "choices": [
+					{ "text": "Was braucht Ihr von mir?", "next": "bedarf" },
+					{ "text": "Schmeckt Sumpf-Terroir denn?", "next": "geschmack" } ] },
+				"bedarf": { "text": "Weinbau erforschen, Reben pflanzen, Kelterei bauen — in dieser Reihenfolge, bitte, ich hatte schon Herrschaften, die mit der Kelterei anfingen. Und stellt eine Wache an den Keller. Ich traue diesem Fest nicht. Es wurde von jemandem eingefädelt, der nie durstig wirkt."
+				},
+				"geschmack": { "text": "Ob er schmeckt! Kirsche, Moor, eine Ahnung von Schilf — der Hofsommelier wird Worte erfinden müssen. Hauptsache, niemand sagt «interessant». «Interessant» ist das Todesurteil jedes Jahrgangs." }
+			}
+		},
+		{
 			"id": "intro", "trigger": { "type": "tech_researched", "tech": "viticulture" }, "once": true, "priority": 4, "start": "start",
 			"nodes": { "start": { "text": "Traubert! Endlich Weinbau! Wisst Ihr, was dieser Boden ist? Terroir! Die Hügel, die Sonne, der leichte Sumpfhauch von Westen — das wird ein Jahrgang, über den man spricht. Notfalls nur ich." } }
 		},

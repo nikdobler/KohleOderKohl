@@ -28,12 +28,21 @@ const _DEF := {
 			],
 		},
 	],
+	"quests": [
+		{
+			"id": "haeuser",
+			"description": "Baut 2 Haeuser.",
+			"trigger": {"type": "building_at_least", "building": "house", "amount": 2},
+			"reward": [{"type": "stock_add", "resource": "wood", "amount": 5}],
+		},
+	],
 }
 
 func run() -> Array:
 	var failures: Array = []
 	_test_start_config(failures)
 	_test_events_fire_once(failures)
+	_test_quests(failures)
 	_test_apply_effects(failures)
 	_test_goal_edge(failures)
 	_test_roundtrip(failures)
@@ -42,9 +51,24 @@ func run() -> Array:
 
 func _state(overrides: Dictionary = {}) -> Dictionary:
 	var state := {"tick": 1, "stock": {}, "satisfaction": 50,
-		"researched": [], "combat_status": "active"}
+		"researched": [], "combat_status": "active", "buildings": {}}
 	state.merge(overrides, true)
 	return state
+
+## Auftraege (M14): building_at_least-Trigger, einmaliger Abschluss, Quest-Log.
+func _test_quests(failures: Array) -> void:
+	var s := Scenario.from_def(_DEF)
+	if not s.pending_quests(_state({"buildings": {"house": 1}})).is_empty():
+		failures.append("Quests: darf bei 1 Haus nicht abschliessen")
+	if s.quest_states()[0]["done"]:
+		failures.append("Quests: Log muss anfangs offen sein")
+	var done := s.pending_quests(_state({"buildings": {"house": 2}}))
+	if done.size() != 1 or done[0].get("id", "") != "haeuser":
+		failures.append("Quests: muss bei 2 Haeusern abschliessen")
+	if not s.pending_quests(_state({"buildings": {"house": 3}})).is_empty():
+		failures.append("Quests: darf nur einmal abschliessen")
+	if not s.quest_states()[0]["done"]:
+		failures.append("Quests: Log muss den Abschluss zeigen")
 
 ## Startbedingungen werden typisiert ausgelesen.
 func _test_start_config(failures: Array) -> void:
@@ -97,10 +121,11 @@ func _test_goal_edge(failures: Array) -> void:
 	if s.check_goal(_state({"stock": {"wood": 10}})) or not s.completed:
 		failures.append("Ziel: Flanke darf nur einmal true liefern")
 
-## Feuer-Status und Zielerreichung ueberstehen einen Speicher-Roundtrip.
+## Feuer-Status, Auftraege und Zielerreichung ueberstehen einen Roundtrip.
 func _test_roundtrip(failures: Array) -> void:
 	var s := Scenario.from_def(_DEF)
 	s.pending_events(_state({"tick": 5}))
+	s.pending_quests(_state({"buildings": {"house": 2}}))
 	s.check_goal(_state({"stock": {"wood": 10}}))
 	var restored := Scenario.from_def(_DEF)
 	restored.from_dict(s.to_dict())
@@ -108,6 +133,8 @@ func _test_roundtrip(failures: Array) -> void:
 		failures.append("Roundtrip: completed verloren")
 	if not restored.pending_events(_state({"tick": 6})).is_empty():
 		failures.append("Roundtrip: gefeuertes Event darf nicht erneut feuern")
+	if not restored.pending_quests(_state({"buildings": {"house": 2}})).is_empty():
+		failures.append("Roundtrip: erledigter Auftrag darf nicht erneut abschliessen")
 
 ## Echte Szenariodateien: alles Referenzierte muss existieren, der Bergfried
 ## muss das erste Gebaeude sein (Kampfsystem erwartet ihn auf Bauplatz 0).

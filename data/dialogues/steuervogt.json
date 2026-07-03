@@ -2,6 +2,16 @@
 	"npc": { "id": "steuervogt", "display_name": "Vogt Grimbald", "archetype": "geiziger Steuervogt", "icon": "npc_steuervogt" },
 	"dialogues": [
 		{
+			"id": "kampagne_steuern", "trigger": { "type": "scripted" }, "once": true, "priority": 9, "start": "start",
+			"nodes": {
+				"start": { "text": "Grimbald, mit amtlichem Auftrag: Die Krone fordert sechzig Goldstücke, fällig ohne Aufschub. Die Steuerliste trägt die Handschrift des Ratgebers — sehr ordentlich, sehr boshaft. Meine Empfehlung liegt in dreifacher Ausfertigung vor.", "choices": [
+					{ "text": "Fasst die Empfehlung zusammen. In einem Satz.", "next": "kurz" },
+					{ "text": "Sechzig Gold?! Das ist Wucher.", "next": "wucher" } ] },
+				"kurz": { "text": "Grabt Gold, baut einen Markt, erhebt Steuern — und wenn die Freifrau von Zierlitz «nur schauen» will, nehmt Eintritt. Das waren streng genommen vier Sätze, ich berechne nur einen." },
+				"wucher": { "text": "Selbstverständlich ist es Wucher. Es ist VORBILDLICHER Wucher, ich habe selten eine so wasserdichte Forderung gesehen. Man kann Bosheit ablehnen und trotzdem ihre Buchführung bewundern." }
+			}
+		},
+		{
 			"id": "intro", "trigger": { "type": "tick_reached", "tick": 30 }, "once": true, "priority": 4, "start": "start",
 			"nodes": {
 				"start": { "text": "Grimbald, Euer Steuervogt. Ich zähle alles: Holz, Brot, Steine — und Ausreden. Von Letzteren haben wir bereits einen Überschuss.", "choices": [

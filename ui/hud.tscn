@@ -37,6 +37,9 @@ layout_mode = 2
 autowrap_mode = 3
 text = ""
 
+[node name="QuestBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+
 [node name="ResourcesTitle" type="Label" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 text = "— Lager —"
@@ -291,14 +294,69 @@ layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="ScenarioList" type="VBoxContainer" parent="ScenarioMenu/VBox/MenuScroll"]
+[node name="MenuVBox" type="VBoxContainer" parent="ScenarioMenu/VBox/MenuScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="CampaignTitle" type="Label" parent="ScenarioMenu/VBox/MenuScroll/MenuVBox"]
+layout_mode = 2
+text = "— Kampagne —"
+
+[node name="CampaignList" type="VBoxContainer" parent="ScenarioMenu/VBox/MenuScroll/MenuVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ScenarioTitle" type="Label" parent="ScenarioMenu/VBox/MenuScroll/MenuVBox"]
+layout_mode = 2
+text = "— Freie Szenarien —"
+
+[node name="ScenarioList" type="VBoxContainer" parent="ScenarioMenu/VBox/MenuScroll/MenuVBox"]
+layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="CloseButton" type="Button" parent="ScenarioMenu/VBox"]
 layout_mode = 2
 text = "Weiterspielen"
+
+[node name="StoryPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -200.0
+offset_right = 280.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="StoryPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="StoryTitle" type="Label" parent="StoryPanel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = ""
+
+[node name="StoryScroll" type="ScrollContainer" parent="StoryPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="StoryText" type="Label" parent="StoryPanel/VBox/StoryScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+text = ""
+
+[node name="StoryButton" type="Button" parent="StoryPanel/VBox"]
+layout_mode = 2
+text = "Weiter"
 
 [node name="FpsLabel" type="Label" parent="."]
 layout_mode = 1

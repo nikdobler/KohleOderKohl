@@ -1,0 +1,78 @@
+{
+	"id": "kampagne_05_verrat",
+	"display_name": "Kampagne 5: Wein und Verrat",
+	"description": "Der König kommt zum Fest — und jemand spaziert nachts mit einem Bohrer am Keller vorbei.",
+	"campaign_only": true,
+	"start": {
+		"stock": {
+			"wood": 40,
+			"stone": 30,
+			"bread": 30,
+			"gold": 20
+		},
+		"researched": [ "stonemasonry" ],
+		"buildings": [
+			{ "id": "keep", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "woodcutter", "workers": 1 },
+			{ "id": "wheat_farm", "workers": 2 },
+			{ "id": "bakery", "workers": 1 },
+			{ "id": "quarry", "workers": 1 }
+		]
+	},
+	"goal": {
+		"description": "Keltert 20 Fass Wein für das Fest des Königs.",
+		"trigger": { "type": "stock_at_least", "resource": "wine", "amount": 20 }
+	},
+	"quests": [
+		{
+			"id": "weinbau",
+			"description": "Erforscht den Weinbau (Belohnung: 10 Holz).",
+			"trigger": { "type": "tech_researched", "tech": "viticulture" },
+			"reward": [ { "type": "stock_add", "resource": "wood", "amount": 10 } ]
+		},
+		{
+			"id": "kelterei",
+			"description": "Errichtet eine Kelterei (Belohnung: 10 Gold).",
+			"trigger": { "type": "building_at_least", "building": "winery", "amount": 1 },
+			"reward": [ { "type": "stock_add", "resource": "gold", "amount": 10 } ]
+		},
+		{
+			"id": "festlaune",
+			"description": "Bringt die Zufriedenheit über 70 — der Hof erwartet Jubel (Belohnung: 10 Brot).",
+			"trigger": { "type": "satisfaction_at_least", "amount": 71 },
+			"reward": [ { "type": "stock_add", "resource": "bread", "amount": 10 } ]
+		}
+	],
+	"events": [
+		{
+			"id": "traubert_auftritt",
+			"trigger": { "type": "tick_reached", "tick": 4 },
+			"message": "Winzer Traubert eilt herbei — bleich wie ein Weisswein.",
+			"effects": [ { "type": "dialogue", "npc": "winzer", "dialogue": "kampagne_rebe" } ]
+		},
+		{
+			"id": "sabotage",
+			"trigger": { "type": "tick_reached", "tick": 130 },
+			"message": "Verrat! Die Fässer sind angestochen, der Keller schwimmt — und draussen warten bewaffnete «Festgäste»!",
+			"effects": [
+				{ "type": "stock_multiply", "resource": "wine", "factor": 0.5 },
+				{ "type": "satisfaction_add", "amount": -10 },
+				{ "type": "wave", "size": 3 },
+				{ "type": "dialogue", "npc": "boesewicht", "dialogue": "kampagne_spott" }
+			]
+		},
+		{
+			"id": "koenigsgruss",
+			"trigger": { "type": "tick_reached", "tick": 200 },
+			"message": "Ein Vorbote des Königs trifft ein und lobt den Duft der Reben. Das Volk schöpft Mut.",
+			"effects": [ { "type": "satisfaction_add", "amount": 10 } ]
+		}
+	],
+	"enemy": {
+		"wave_interval_ticks": 75,
+		"wave_size": 2
+	}
+}

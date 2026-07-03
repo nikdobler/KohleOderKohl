@@ -7,6 +7,28 @@
 	},
 	"dialogues": [
 		{
+			"id": "kampagne_ankunft",
+			"trigger": { "type": "scripted" },
+			"once": true,
+			"priority": 10,
+			"start": "start",
+			"nodes": {
+				"start": {
+					"text": "Willkommen in Nebelfurt, Herrschaft. Ich bin Balduin, Euer Baumeister — und Überbringer der Lageeinschätzung: Der Boden ist Sumpf, das Wetter ist Nebel, und der Schwarze Ratgeber hat Euch dieses Lehen nicht aus Nächstenliebe verschafft.",
+					"choices": [
+						{ "text": "Was will der Ratgeber mit einem Sumpf?", "next": "verdacht" },
+						{ "text": "Egal. Wir bauen. Womit fangen wir an?", "next": "plan" }
+					]
+				},
+				"verdacht": {
+					"text": "Gute Frage. Niemand verschenkt Land, auf dem er nicht vorher herumgeschnüffelt hat. Mein Rat: erst Brot, dann Fragen. Hungrige Siedler graben schlecht — und misstrauen noch schlechter."
+				},
+				"plan": {
+					"text": "Mit dem Ofen. Vierzig Brote bis zum Winter, sonst wandert das Volk dorthin ab, wo der Sumpf wenigstens warm ist. Holzfäller in den Wald, Bauern aufs Feld — und lasst mich mit Triumphbögen in Ruhe, es ist noch nicht mal Kapitel drei."
+				}
+			}
+		},
+		{
 			"id": "intro",
 			"trigger": { "type": "tick_reached", "tick": 5 },
 			"once": true,

@@ -1,0 +1,72 @@
+{
+	"id": "kampagne_03_friede",
+	"display_name": "Kampagne 3: Der bewaffnete Friede",
+	"description": "300 Züge Ansturm bezahlter Klingen — Mauern, Türme, Nerven.",
+	"campaign_only": true,
+	"start": {
+		"stock": {
+			"wood": 30,
+			"stone": 20,
+			"bread": 20
+		},
+		"researched": [ "stonemasonry" ],
+		"buildings": [
+			{ "id": "keep", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "woodcutter", "workers": 1 },
+			{ "id": "wheat_farm", "workers": 2 },
+			{ "id": "bakery", "workers": 1 },
+			{ "id": "quarry", "workers": 1 }
+		]
+	},
+	"goal": {
+		"description": "Übersteht 300 Züge gegen die bezahlten Klingen.",
+		"trigger": { "type": "tick_reached", "tick": 300 }
+	},
+	"quests": [
+		{
+			"id": "festungsbau",
+			"description": "Erforscht den Festungsbau (Belohnung: 10 Stein).",
+			"trigger": { "type": "tech_researched", "tech": "fortification" },
+			"reward": [ { "type": "stock_add", "resource": "stone", "amount": 10 } ]
+		},
+		{
+			"id": "mauerring",
+			"description": "Errichtet mindestens 3 Mauerstücke (Belohnung: 10 Holz).",
+			"trigger": { "type": "building_at_least", "building": "wall", "amount": 3 },
+			"reward": [ { "type": "stock_add", "resource": "wood", "amount": 10 } ]
+		},
+		{
+			"id": "wachturm",
+			"description": "Baut einen Wachturm (Belohnung: 10 Stein).",
+			"trigger": { "type": "building_at_least", "building": "tower", "amount": 1 },
+			"reward": [ { "type": "stock_add", "resource": "stone", "amount": 10 } ]
+		}
+	],
+	"events": [
+		{
+			"id": "kunz_auftritt",
+			"trigger": { "type": "tick_reached", "tick": 5 },
+			"message": "Ritter Kunz von Prahlfels reitet ein — das Pferd wirkt erleichtert, absteigen zu dürfen.",
+			"effects": [ { "type": "dialogue", "npc": "ritter", "dialogue": "kampagne_wache" } ]
+		},
+		{
+			"id": "kriegshorn",
+			"trigger": { "type": "tick_reached", "tick": 150 },
+			"message": "Ein Kriegshorn hallt über den Sumpf — die Klingen kommen in Rotten!",
+			"effects": [ { "type": "wave", "size": 3 } ]
+		},
+		{
+			"id": "letzter_ansturm",
+			"trigger": { "type": "tick_reached", "tick": 250 },
+			"message": "Der letzte Ansturm! Wer das übersteht, hat den Frieden verdient.",
+			"effects": [ { "type": "wave", "size": 4 } ]
+		}
+	],
+	"enemy": {
+		"wave_interval_ticks": 60,
+		"wave_size": 2
+	}
+}

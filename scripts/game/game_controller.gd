@@ -14,6 +14,8 @@ const MAP_SIZE: int = 64
 ## Feinde innerhalb dieses Radius um den Bergfried gelten als Bedrohung
 ## (druecken die Laune, M8).
 const THREAT_RADIUS: int = 10
+## Kampagnen-Fortschritt lebt getrennt vom Spielstand (ueberlebt Neustarts).
+const CAMPAIGN_SAVE_PATH: String = "user://campaign.json"
 
 var _economy: Economy
 var _research: Research
@@ -21,9 +23,13 @@ var _world: WorldMap
 var _combat: CombatSystem
 var _dialogue: DialogueSystem
 var _scenario: Scenario
+var _campaign: Campaign
+var _campaign_chapter: String = ""  # aktives Kapitel ("" = freies Szenario)
 var _timer: Timer
 
 func _ready() -> void:
+	_campaign = Campaign.from_def(Database.campaign)
+	_campaign.from_dict(SaveManager.load_game(CAMPAIGN_SAVE_PATH))
 	_connect_events()
 	_start_tick_timer()
 	_start_scenario(DEFAULT_SCENARIO)
@@ -54,12 +60,25 @@ func _luxury_defs() -> Dictionary:
 			luxuries[StringName(res_id)] = mood
 	return luxuries
 
-## Neues Spiel ueber das Szenario-Menue.
+## Neues Spiel ueber das Szenario-Menue (freies Szenario, keine Kampagne).
 func _on_scenario_selected(scenario_id: String) -> void:
+	_campaign_chapter = ""
 	_start_scenario(scenario_id)
 	EventBus.game_loaded.emit()  # UI raeumt dynamische Zeilen
 	EventBus.dialogue_ended.emit()
 	_emit_full_state()
+
+## Kampagnen-Kapitel starten (M14): Szenario laden + Intro-Text zeigen.
+func _on_campaign_chapter_selected(chapter_id: String) -> void:
+	var chapter := _campaign.chapter(chapter_id)
+	if chapter.is_empty() or not _campaign.is_unlocked(chapter_id):
+		return
+	_campaign_chapter = chapter_id
+	_start_scenario(String(chapter.get("scenario", "")))
+	EventBus.game_loaded.emit()
+	EventBus.dialogue_ended.emit()
+	_emit_full_state()
+	EventBus.story_shown.emit(String(chapter.get("title", "")), String(chapter.get("intro", "")), false)
 
 func _on_menu_visible(menu_visible: bool) -> void:
 	_timer.paused = menu_visible
@@ -135,6 +154,7 @@ func _connect_events() -> void:
 	EventBus.recruit_requested.connect(_on_recruit)
 	EventBus.stance_toggle_requested.connect(_on_stance_toggle)
 	EventBus.scenario_selected.connect(_on_scenario_selected)
+	EventBus.campaign_chapter_selected.connect(_on_campaign_chapter_selected)
 	EventBus.scenario_menu_visible.connect(_on_menu_visible)
 	EventBus.dialogue_advance_requested.connect(_on_dialogue_advance)
 	EventBus.build_preview_requested.connect(_on_build_preview)
@@ -166,20 +186,59 @@ func _on_tick() -> void:
 	_scenario_tick()
 	_check_dialogues()
 
-## Szenario-Events feuern und Ziel pruefen (Effekte sind Daten-Regeln;
-## "wave"-Effekte loesen Angriffswellen aus, M12).
+## Szenario-Events feuern, Auftraege pruefen und Ziel pruefen (Effekte sind
+## Daten-Regeln; "wave" loest Angriffswellen aus, "dialogue" laesst einen
+## Charakter skriptgesteuert auftreten — M12/M14).
 func _scenario_tick() -> void:
 	for event in _scenario.pending_events(_game_snapshot()):
 		for resource_id in Scenario.apply_effects(event.get("effects", []), _economy):
 			EventBus.stock_changed.emit(resource_id, _economy.get_stock(resource_id))
-		for effect in event.get("effects", []):
-			if String(effect.get("type", "")) == "wave":
-				_combat.force_wave(int(effect.get("size", 1)))
+		_apply_controller_effects(event.get("effects", []))
 		EventBus.satisfaction_changed.emit(_economy.satisfaction)
 		EventBus.scenario_event.emit(String(event.get("message", "")))
+	_quest_tick()
 	if _scenario.check_goal(_game_snapshot()):
 		EventBus.scenario_event.emit("Ziel erreicht: %s" % _scenario.goal_description())
 		EventBus.scenario_state_changed.emit(_scenario_info())
+		if _campaign_chapter != "":
+			_complete_campaign_chapter()
+
+## Effekt-Typen, die Modelle ausserhalb der Wirtschaft brauchen.
+func _apply_controller_effects(effects: Array) -> void:
+	for effect in effects:
+		match String(effect.get("type", "")):
+			"wave":
+				_combat.force_wave(int(effect.get("size", 1)))
+			"dialogue":
+				_force_dialogue(String(effect.get("npc", "")), String(effect.get("dialogue", "")))
+
+## Skriptgesteuerter Charakter-Auftritt (Kampagnen-Story, M14).
+func _force_dialogue(npc_id: String, dialogue_id: String) -> void:
+	var result := _dialogue.force_start(npc_id, dialogue_id, _game_snapshot())
+	if not result.is_empty():
+		EventBus.dialogue_started.emit(result["npc"], result["node"])
+
+## Abgeschlossene Auftraege (Side-Quests, M14): Belohnung anwenden + melden.
+func _quest_tick() -> void:
+	var done := _scenario.pending_quests(_game_snapshot())
+	if done.is_empty():
+		return
+	for quest in done:
+		for resource_id in Scenario.apply_effects(quest.get("reward", []), _economy):
+			EventBus.stock_changed.emit(resource_id, _economy.get_stock(resource_id))
+		EventBus.satisfaction_changed.emit(_economy.satisfaction)
+		EventBus.scenario_event.emit("Auftrag erledigt: %s" % String(quest.get("description", "")))
+	EventBus.quest_state_changed.emit(_scenario.quest_states())
+
+## Kapitel abgeschlossen: Fortschritt dauerhaft sichern, naechstes Kapitel
+## freischalten und den Story-Abspann zeigen.
+func _complete_campaign_chapter() -> void:
+	var chapter := _campaign.chapter(_campaign_chapter)
+	_campaign.complete(_campaign_chapter)
+	SaveManager.save_game(_campaign.to_dict(), CAMPAIGN_SAVE_PATH)
+	EventBus.campaign_state_changed.emit(_campaign.overview())
+	EventBus.story_shown.emit(String(chapter.get("title", "")), String(chapter.get("outro", "")),
+		_campaign.next_chapter_id(_campaign_chapter) != "")
 
 func _scenario_info() -> Dictionary:
 	return {
@@ -213,12 +272,16 @@ func _game_snapshot() -> Dictionary:
 	var researched: Array = []
 	for id in _research.researched:
 		researched.append(String(id))
+	var buildings: Dictionary = {}
+	for building in _economy.buildings:
+		buildings[String(building.def_id)] = int(buildings.get(String(building.def_id), 0)) + 1
 	return {
 		"tick": _economy.tick_count,
 		"stock": stock,
 		"satisfaction": _economy.satisfaction,
 		"researched": researched,
 		"combat_status": String(_combat.status),
+		"buildings": buildings,
 	}
 
 ## Kampfschritt: Ereignisse melden, Gefallene geben Wohnraum frei.
@@ -565,6 +628,7 @@ func _on_save() -> void:
 		"dialogues": _dialogue.to_dict(),
 		"scenario": _scenario.to_dict(),
 		"scenario_id": String(_scenario._def.get("id", DEFAULT_SCENARIO)),
+		"campaign_chapter": _campaign_chapter,
 	}
 	if SaveManager.save_game(GameState.to_dict()) == OK:
 		EventBus.game_saved.emit()
@@ -575,6 +639,7 @@ func _on_load() -> void:
 	# Szenario-Definition zuerst (M12: Spielstand merkt sich das Szenario).
 	var scenario_id: String = GameState.data.get("scenario_id", DEFAULT_SCENARIO)
 	_scenario = Scenario.from_def(Database.scenarios.get(scenario_id, {}))
+	_campaign_chapter = String(GameState.data.get("campaign_chapter", ""))
 	var economy_data: Dictionary = GameState.data.get("economy", {})
 	if not economy_data.is_empty():
 		_economy.from_dict(economy_data)
@@ -624,6 +689,8 @@ func _emit_full_state() -> void:
 	EventBus.satisfaction_changed.emit(_economy.satisfaction)
 	EventBus.combat_state_changed.emit(_combat.snapshot())
 	EventBus.scenario_state_changed.emit(_scenario_info())
+	EventBus.quest_state_changed.emit(_scenario.quest_states())
+	EventBus.campaign_state_changed.emit(_campaign.overview())
 	EventBus.build_options_changed.emit(_build_options())
 	EventBus.recruit_options_changed.emit(_recruit_options())
 	_emit_policy()

@@ -6,7 +6,8 @@ extends RefCounted
 ## Bedingungs-Schema und diese eine Auswertung. Der Zustands-Schnappschuss
 ## kommt vom Controller (String-Schluessel, JSON-kompatibel): {"tick": int,
 ## "stock": {String: int}, "satisfaction": int, "researched": [String],
-## "combat_status": String}. Neue Bedingungstypen = neuer match-Zweig.
+## "combat_status": String, "buildings": {String: int}}.
+## Neue Bedingungstypen = neuer match-Zweig.
 
 static func met(trigger: Dictionary, state: Dictionary) -> bool:
 	match String(trigger.get("type", "")):
@@ -28,6 +29,12 @@ static func met(trigger: Dictionary, state: Dictionary) -> bool:
 			return state.get("researched", []).has(trigger.get("tech", ""))
 		"combat_status":
 			return String(state.get("combat_status", "")) == String(trigger.get("status", ""))
+		"building_at_least":
+			# M14: Quest-Bedingung "N Gebaeude eines Typs stehen".
+			return int(state.get("buildings", {}).get(trigger.get("building", ""), 0)) \
+				>= int(trigger.get("amount", 0))
+		"scripted":
+			return false  # feuert nie von selbst — nur per force_start (Kampagne, M14)
 		_:
 			push_warning("TriggerEval: unbekannter Bedingungstyp '%s'" % trigger.get("type", ""))
 			return false

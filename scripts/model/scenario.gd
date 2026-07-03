@@ -9,7 +9,8 @@ extends RefCounted
 ## headless testbar.
 
 var _def: Dictionary = {}
-var _fired: Dictionary = {}  # event_id -> true (Events feuern einmalig)
+var _fired: Dictionary = {}        # event_id -> true (Events feuern einmalig)
+var _quests_done: Dictionary = {}  # quest_id -> true (Auftraege schliessen einmalig ab)
 var completed: bool = false
 
 static func from_def(def: Dictionary) -> Scenario:
@@ -42,6 +43,10 @@ func start_buildings() -> Array:
 func enemy_override() -> Dictionary:
 	return _def.get("enemy", {})
 
+## Kampagnen-Kapitel erscheinen nicht in der freien Szenario-Auswahl (M14).
+func campaign_only() -> bool:
+	return _def.get("campaign_only", false)
+
 ## Zu Beginn bereits erforschte Technologien.
 func start_researched() -> Array:
 	var researched: Array = []
@@ -62,6 +67,30 @@ func pending_events(state: Dictionary) -> Array:
 		_fired[id] = true
 		fired_now.append(event)
 	return fired_now
+
+## Prueft offene Auftraege (Side-Quests, M14) gegen den Schnappschuss und
+## liefert die jetzt abgeschlossenen (jeder Auftrag schliesst genau einmal ab).
+func pending_quests(state: Dictionary) -> Array:
+	var done_now: Array = []
+	for quest in _def.get("quests", []):
+		var id := String(quest.get("id", ""))
+		if _quests_done.has(id):
+			continue
+		if not TriggerEval.met(quest.get("trigger", {}), state):
+			continue
+		_quests_done[id] = true
+		done_now.append(quest)
+	return done_now
+
+## Auftragsliste fuer das Quest-Log der UI: Beschreibung + erledigt?
+func quest_states() -> Array:
+	var states: Array = []
+	for quest in _def.get("quests", []):
+		states.append({
+			"description": quest.get("description", ""),
+			"done": _quests_done.has(String(quest.get("id", ""))),
+		})
+	return states
 
 ## Zielpruefung mit Flanke: true genau in dem Moment, in dem das Ziel
 ## erstmals erreicht wird; danach bleibt [member completed] gesetzt.
@@ -88,16 +117,21 @@ static func apply_effects(effects: Array, economy: Economy) -> Array:
 				changed.append(resource)
 			"satisfaction_add":
 				economy.satisfaction = clampi(economy.satisfaction + int(effect.get("amount", 0)), 0, 100)
+			"wave", "dialogue":
+				pass  # behandelt der Controller (Kampfsystem bzw. Dialogsystem)
 			_:
 				push_warning("Scenario: unbekannter Effekt-Typ '%s'" % effect.get("type", ""))
 	return changed
 
-## Serialisiert Feuer-Status und Zielerreichung fuer den Spielstand.
+## Serialisiert Feuer-Status, Auftraege und Zielerreichung fuer den Spielstand.
 func to_dict() -> Dictionary:
-	return {"fired": _fired.keys(), "completed": completed}
+	return {"fired": _fired.keys(), "quests": _quests_done.keys(), "completed": completed}
 
 func from_dict(d: Dictionary) -> void:
 	_fired.clear()
 	for id in d.get("fired", []):
 		_fired[String(id)] = true
+	_quests_done.clear()
+	for id in d.get("quests", []):
+		_quests_done[String(id)] = true
 	completed = bool(d.get("completed", false))

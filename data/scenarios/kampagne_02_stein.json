@@ -1,0 +1,69 @@
+{
+	"id": "kampagne_02_stein",
+	"display_name": "Kampagne 2: Stein auf Stein",
+	"description": "Steinmetzkunst erforschen, 30 Stein brechen — und die ersten «Besucher» abwehren.",
+	"campaign_only": true,
+	"start": {
+		"stock": {
+			"wood": 25,
+			"bread": 15
+		},
+		"researched": [],
+		"buildings": [
+			{ "id": "keep", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "woodcutter", "workers": 1 },
+			{ "id": "wheat_farm", "workers": 2 },
+			{ "id": "bakery", "workers": 1 }
+		]
+	},
+	"goal": {
+		"description": "Brecht 30 Stein für das Fundament von Nebelfurt.",
+		"trigger": { "type": "stock_at_least", "resource": "stone", "amount": 30 }
+	},
+	"quests": [
+		{
+			"id": "steinmetzkunst",
+			"description": "Erforscht die Steinmetzkunst (Belohnung: 10 Holz).",
+			"trigger": { "type": "tech_researched", "tech": "stonemasonry" },
+			"reward": [ { "type": "stock_add", "resource": "wood", "amount": 10 } ]
+		},
+		{
+			"id": "steinbruch",
+			"description": "Errichtet einen Steinbruch auf Fels (Belohnung: 5 Stein).",
+			"trigger": { "type": "building_at_least", "building": "quarry", "amount": 1 },
+			"reward": [ { "type": "stock_add", "resource": "stone", "amount": 5 } ]
+		},
+		{
+			"id": "gute_stimmung",
+			"description": "Haltet die Zufriedenheit über 60 (Belohnung: 10 Brot).",
+			"trigger": { "type": "satisfaction_at_least", "amount": 61 },
+			"reward": [ { "type": "stock_add", "resource": "bread", "amount": 10 } ]
+		}
+	],
+	"events": [
+		{
+			"id": "brocken_auftritt",
+			"trigger": { "type": "tick_reached", "tick": 3 },
+			"message": "Steinmetz Brocken klopft an — beziehungsweise: er klopft immer.",
+			"effects": [ { "type": "dialogue", "npc": "steinmetz", "dialogue": "kampagne_fels" } ]
+		},
+		{
+			"id": "raeuber_wittern_beute",
+			"trigger": { "type": "tick_reached", "tick": 70 },
+			"message": "Räuber wittern Beute — eine Bande nähert sich Nebelfurt!",
+			"effects": [ { "type": "wave", "size": 2 } ]
+		},
+		{
+			"id": "brockens_fund",
+			"trigger": { "type": "tick_reached", "tick": 110 },
+			"message": "Brocken findet eine Ader besten Kalksteins und «vergisst», sie zu berechnen: 5 Stein geschenkt.",
+			"effects": [ { "type": "stock_add", "resource": "stone", "amount": 5 } ]
+		}
+	],
+	"enemy": {
+		"wave_interval_ticks": 120,
+		"wave_size": 1
+	}
+}

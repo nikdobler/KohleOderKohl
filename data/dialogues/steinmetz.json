@@ -2,6 +2,16 @@
 	"npc": { "id": "steinmetz", "display_name": "Steinmetz Brocken", "archetype": "stoischer Steinmetz", "icon": "npc_steinmetz" },
 	"dialogues": [
 		{
+			"id": "kampagne_fels", "trigger": { "type": "scripted" }, "once": true, "priority": 9, "start": "start",
+			"nodes": {
+				"start": { "text": "Brocken. Ich habe gehört, Ihr wollt in Stein bauen. Endlich redet hier jemand meine Sprache — sie hat nur ein Wort, aber es ist ein gutes. Erforscht die Steinmetzkunst, sucht Euch einen ehrlichen Felsen, und ich mache Euch daraus ein Fundament, das noch steht, wenn der Nebel Namen hat.", "choices": [
+					{ "text": "Wieso handelt ausgerechnet Ihr mit Stein?", "next": "handel" },
+					{ "text": "An die Arbeit.", "next": "arbeit" } ] },
+				"handel": { "text": "Zufall. Völliger Zufall. Dass ich der Einzige im Umkreis bin, der Fels von Findling unterscheiden kann, hat damit nichts zu tun. Dreissig Brocken braucht Ihr. Ich zähle mit. Ich zähle immer mit." },
+				"arbeit": { "text": "So gefällt mir das. Kein Geschwätz. Ihr und ich, wir werden gut auskommen — vorausgesetzt, Ihr nennt Kalkstein nie wieder «so graues Zeug»." }
+			}
+		},
+		{
 			"id": "intro", "trigger": { "type": "tech_researched", "tech": "stonemasonry" }, "once": true, "priority": 3, "start": "start",
 			"nodes": { "start": { "text": "Brocken. Steinmetz. Der Baumeister redet über Stein, ich rede MIT Stein. Er antwortet selten, aber er widerspricht auch nie. Beste Arbeitsbeziehung meines Lebens." } }
 		},

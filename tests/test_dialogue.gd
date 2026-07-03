@@ -39,9 +39,28 @@ func run() -> Array:
 	_test_priority_and_once(failures)
 	_test_cooldown(failures)
 	_test_navigation_with_choices(failures)
+	_test_force_start(failures)
 	_test_roundtrip(failures)
 	_test_data_files_consistent(failures)
 	return failures
+
+## force_start (M14): startet unabhaengig vom Trigger; "scripted" feuert
+## nie von selbst; einmalige gelten danach als gesehen.
+func _test_force_start(failures: Array) -> void:
+	var defs := {"tester": {"npc": {"id": "tester", "display_name": "Tester"}, "dialogues": [
+		{"id": "story", "trigger": {"type": "scripted"}, "once": true, "start": "start",
+			"nodes": {"start": {"text": "Story."}}}]}}
+	var d := DialogueSystem.from_defs(defs)
+	if not d.check_triggers(_state()).is_empty():
+		failures.append("Scripted: darf nie von selbst feuern")
+	var result := d.force_start("tester", "story", _state())
+	if result.get("node", {}).get("text", "") != "Story." or not d.is_active():
+		failures.append("Force: Story-Dialog muss starten")
+	d.advance(-1)
+	if not d.to_dict().get("seen", []).has("tester/story"):
+		failures.append("Force: einmaliger Dialog muss als gesehen gelten")
+	if not d.force_start("tester", "fehlt", _state()).is_empty():
+		failures.append("Force: unbekannter Dialog muss leer zurueckkommen")
 
 func _state(overrides: Dictionary = {}) -> Dictionary:
 	var state := {"tick": 100, "stock": {"wood": 100}, "satisfaction": 100,

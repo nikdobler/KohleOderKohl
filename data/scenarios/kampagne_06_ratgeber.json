@@ -1,0 +1,81 @@
+{
+	"id": "kampagne_06_ratgeber",
+	"display_name": "Kampagne 6: Der Schwarze Ratgeber",
+	"description": "Die letzte Rechnung: Sein Bergfried muss fallen.",
+	"campaign_only": true,
+	"start": {
+		"stock": {
+			"wood": 60,
+			"stone": 40,
+			"bread": 40,
+			"iron": 10,
+			"gold": 30
+		},
+		"researched": [ "stonemasonry", "fortification", "archery", "mining", "smithing" ],
+		"buildings": [
+			{ "id": "keep", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "woodcutter", "workers": 1 },
+			{ "id": "wheat_farm", "workers": 2 },
+			{ "id": "bakery", "workers": 1 },
+			{ "id": "quarry", "workers": 1 },
+			{ "id": "iron_mine", "workers": 1 },
+			{ "id": "smithy", "workers": 1 }
+		]
+	},
+	"goal": {
+		"description": "Erobert den Bergfried des Schwarzen Ratgebers.",
+		"trigger": { "type": "combat_status", "status": "victory" }
+	},
+	"quests": [
+		{
+			"id": "armbrust",
+			"description": "Erforscht den Armbrustbau (Belohnung: 10 Gold).",
+			"trigger": { "type": "tech_researched", "tech": "crossbow" },
+			"reward": [ { "type": "stock_add", "resource": "gold", "amount": 10 } ]
+		},
+		{
+			"id": "waffenkammer",
+			"description": "Schmiedet 8 Waffen (Belohnung: 10 Gold).",
+			"trigger": { "type": "stock_at_least", "resource": "weapons", "amount": 8 },
+			"reward": [ { "type": "stock_add", "resource": "gold", "amount": 10 } ]
+		},
+		{
+			"id": "ruestkammer",
+			"description": "Fertigt 5 Rüstungen (Belohnung: 10 Brot).",
+			"trigger": { "type": "stock_at_least", "resource": "armor", "amount": 5 },
+			"reward": [ { "type": "stock_add", "resource": "bread", "amount": 10 } ]
+		}
+	],
+	"events": [
+		{
+			"id": "endspiel",
+			"trigger": { "type": "tick_reached", "tick": 3 },
+			"message": "Ein letzter Bote des Schwarzen Ratgebers überbringt ein letztes Angebot.",
+			"effects": [ { "type": "dialogue", "npc": "boesewicht", "dialogue": "kampagne_endspiel" } ]
+		},
+		{
+			"id": "grosser_ansturm",
+			"trigger": { "type": "tick_reached", "tick": 110 },
+			"message": "Der Ratgeber schickt alles, was er gekauft hat — und er hat viel gekauft!",
+			"effects": [ { "type": "wave", "size": 4 } ]
+		},
+		{
+			"id": "verzweiflung",
+			"trigger": { "type": "tick_reached", "tick": 220 },
+			"message": "Aus der schwarzen Festung dringt Gebrüll: Der Ratgeber wirft die Leibwache in die Schlacht!",
+			"effects": [ { "type": "wave", "size": 5 } ]
+		}
+	],
+	"enemy": {
+		"keep_hp": 220,
+		"defenders": 4,
+		"wave_interval_ticks": 50,
+		"wave_size": 3,
+		"units": [ "raider", "bandit_archer", "raider" ],
+		"researched": [ "stonemasonry", "fortification", "archery", "crossbow" ]
+	}
+}

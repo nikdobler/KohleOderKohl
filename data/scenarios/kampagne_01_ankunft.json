@@ -1,0 +1,61 @@
+{
+	"id": "kampagne_01_ankunft",
+	"display_name": "Kampagne 1: Ankunft in Nebelfurt",
+	"description": "Ein Lehen im Sumpf, ein rechnender Ratgeber — und 40 Brote bis zum Winter.",
+	"campaign_only": true,
+	"start": {
+		"stock": {
+			"wood": 12
+		},
+		"researched": [],
+		"buildings": [
+			{ "id": "keep", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "house", "workers": 0 },
+			{ "id": "woodcutter", "workers": 1 },
+			{ "id": "wheat_farm", "workers": 2 },
+			{ "id": "bakery", "workers": 1 }
+		]
+	},
+	"goal": {
+		"description": "Sammelt 40 Brot als Wintervorrat.",
+		"trigger": { "type": "stock_at_least", "resource": "bread", "amount": 40 }
+	},
+	"quests": [
+		{
+			"id": "drittes_haus",
+			"description": "Baut ein drittes Wohnhaus (Belohnung: 10 Holz).",
+			"trigger": { "type": "building_at_least", "building": "house", "amount": 3 },
+			"reward": [ { "type": "stock_add", "resource": "wood", "amount": 10 } ]
+		},
+		{
+			"id": "holzvorrat",
+			"description": "Legt 30 Holz auf Vorrat (Belohnung: das Volk fasst Vertrauen).",
+			"trigger": { "type": "stock_at_least", "resource": "wood", "amount": 30 },
+			"reward": [ { "type": "satisfaction_add", "amount": 8 } ]
+		}
+	],
+	"events": [
+		{
+			"id": "balduin_begruessung",
+			"trigger": { "type": "tick_reached", "tick": 2 },
+			"message": "Baumeister Balduin meldet sich zum Dienst.",
+			"effects": [ { "type": "dialogue", "npc": "baumeister", "dialogue": "kampagne_ankunft" } ]
+		},
+		{
+			"id": "brief_des_ratgebers",
+			"trigger": { "type": "tick_reached", "tick": 55 },
+			"message": "Ein Bote bringt einen Brief mit schwarzem Siegel.",
+			"effects": [ { "type": "dialogue", "npc": "boesewicht", "dialogue": "kampagne_brief" } ]
+		},
+		{
+			"id": "bauholz_der_krone",
+			"trigger": { "type": "tick_reached", "tick": 85 },
+			"message": "Die Krone schickt 15 Stamm Bauholz — offenbar hat jemand bei Hofe ein gutes Wort eingelegt.",
+			"effects": [ { "type": "stock_add", "resource": "wood", "amount": 15 } ]
+		}
+	],
+	"enemy": {
+		"wave_interval_ticks": 0
+	}
+}

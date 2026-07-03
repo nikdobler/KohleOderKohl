@@ -2,6 +2,32 @@
 	"npc": { "id": "boesewicht", "display_name": "Der Schwarze Ratgeber", "archetype": "archetypischer Bösewicht", "icon": "npc_boesewicht" },
 	"dialogues": [
 		{
+			"id": "kampagne_brief", "trigger": { "type": "scripted" }, "once": true, "priority": 9, "start": "start",
+			"nodes": {
+				"start": { "text": "«An den neuen Herrn von Nebelfurt. Man berichtet mir, Ihr backt Brot. Entzückend. Ich habe gewettet, dass Euer Lehen bis zum Frühjahr wieder frei wird — enttäuscht mich nicht. Hochachtungsvoll, der Ratgeber der Krone.» Der Bote wartet nicht auf Antwort.", "choices": [
+					{ "text": "Den Brief ins Feuer. Weiterarbeiten.", "next": "feuer" },
+					{ "text": "Was hat er gewettet?", "next": "wette" } ] },
+				"feuer": { "text": "Der Brief brennt schlecht. Selbst das Papier ist von zäher, schwarzer Sorte. Aber er brennt." },
+				"wette": { "text": "Der Bote zuckt mit den Schultern: «Euer Lehen, Herrschaft. Er hat Euer Lehen gewettet. Gegen sich selbst.» Dann reitet er sehr schnell davon." }
+			}
+		},
+		{
+			"id": "kampagne_spott", "trigger": { "type": "scripted" }, "once": true, "priority": 9, "start": "start",
+			"nodes": {
+				"start": { "text": "Aus dem Schatten des Weinkellers löst sich eine Gestalt: «Ein Jammer um den Wein. Guter Jahrgang, sagt man. Nun — der König trinkt ungern in Siedlungen, die brennen. Und Eure wird brennen. Ich habe da ein Gespür.»" }
+			}
+		},
+		{
+			"id": "kampagne_endspiel", "trigger": { "type": "scripted" }, "once": true, "priority": 9, "start": "start",
+			"nodes": {
+				"start": { "text": "«Letzte Offerte», verliest der Bote. «Übergebt Nebelfurt, und Ihr erhaltet freies Geleit, eine Leibrente und ein hübsches Lehen. Irgendwo. Klausel sieben gilt wie besprochen.» Hinter der Furt ragt der schwarze Bergfried in den Nebel.", "choices": [
+					{ "text": "Sagt ihm: Wir kommen. Mit allem.", "next": "krieg" },
+					{ "text": "Was für ein Lehen wäre das denn?", "next": "lehen" } ] },
+				"krieg": { "text": "Der Bote nickt langsam: «Er hat gesagt, das würdet Ihr sagen. Er hat sich trotzdem geärgert. Das Wachs vom Siegel — er hat es persönlich zerbissen.»" },
+				"lehen": { "text": "Der Bote blättert: «Hier steht... ein Sumpf.» Pause. «Dieser Sumpf. Er bietet Euch Nebelfurt an. Euer eigenes—» Ja. Das Gespräch ist beendet." }
+			}
+		},
+		{
 			"id": "intro", "trigger": { "type": "tick_reached", "tick": 200 }, "once": true, "priority": 4, "start": "start",
 			"nodes": {
 				"start": { "text": "Man nennt mich den Schwarzen Ratgeber. Ich biete Euch Macht, Reichtum und einen sehr günstigen Pakt. Das Kleingedruckte ist... klein.", "choices": [

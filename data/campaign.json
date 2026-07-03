@@ -1,0 +1,48 @@
+{
+	"id": "hauptkampagne",
+	"display_name": "Krone und Kohl — Die Kampagne",
+	"chapters": [
+		{
+			"id": "kap_01",
+			"scenario": "kampagne_01_ankunft",
+			"title": "Kapitel 1 — Ankunft in Nebelfurt",
+			"intro": "Die Krone hat Euch ein Lehen geschenkt. Das klingt grossartig, bis man es sieht: Nebelfurt — ein Flecken zwischen Sumpf und Nirgendwo, empfohlen vom Schwarzen Ratgeber persönlich. «Ein Juwel», sagte er bei Hofe, «man muss nur durch den Schlamm graben.» Alle lachten. Ihr nicht.\n\nNun steht Ihr hier mit einem Bergfried, zwei Hütten und einem Baumeister, der behauptet, schon drei Burgen in Sümpfen gebaut zu haben. Zeigt der Krone — und dem Ratgeber — dass Nebelfurt mehr kann als Nebel.",
+			"outro": "Vierzig Laibe Brot lagern im Speicher, und zum ersten Mal riecht Nebelfurt nach etwas anderem als Sumpf: nach Zukunft. Bei Hofe soll der Schwarze Ratgeber sehr leise geworden sein, als der Bote die Nachricht brachte.\n\nZu leise, findet Baumeister Balduin. «Wenn so einer schweigt, rechnet er.»"
+		},
+		{
+			"id": "kap_02",
+			"scenario": "kampagne_02_stein",
+			"title": "Kapitel 2 — Stein auf Stein",
+			"intro": "Holz brennt, Holz fault, Holz überzeugt niemanden. Wer in Nebelfurt bleiben will, baut in Stein — das sagt zumindest Steinmetz Brocken, der zufällig mit Stein handelt.\n\nDoch die Strassen werden unsicher: Räuber haben gehört, dass es in Nebelfurt neuerdings etwas zu holen gibt. Erforscht die Steinmetzkunst und legt einen Steinvorrat an, bevor aus Besuchern Gäste werden, die bleiben.",
+			"outro": "Dreissig Brocken bester Stein — Brocken hat bei der Abnahme geweint, behauptet aber, es sei der Staub gewesen. Nebelfurt hat jetzt ein Fundament.\n\nUnter den erschlagenen Räubern fand man einen Beutel mit frisch geprägten Münzen. Sehr frisch. Aus der Münzprägerei der Hauptstadt. Balduin sagt nichts. Er hebt nur eine Augenbraue, sehr langsam."
+		},
+		{
+			"id": "kap_03",
+			"scenario": "kampagne_03_friede",
+			"title": "Kapitel 3 — Der bewaffnete Friede",
+			"intro": "Ritter Kunz von Prahlfels ist eingetroffen — auf eigenen Wunsch, wie er betont, und keineswegs, weil man ihn bei Hofe loswerden wollte. Er bringt schlechte Nachrichten und ein grosses Schwert: Die «Räuber» sind bezahlte Klingen, und ihr Sold kommt aus einer Schatulle mit schwarzem Siegel.\n\nDreihundert Züge lang werden sie anstürmen, sagt Kunz' Kundschafter. Baut Mauern, baut Türme, haltet stand. «Und wenn alles brennt», sagt Kunz, «erzählt später einfach, ich sei vorne gewesen.»",
+			"outro": "Die Angriffe verebben. Vor den Mauern liegt mehr schlechtes Kriegsgerät, als Nebelfurt je bezahlt bekommen wird, und Ritter Kunz erzählt bereits die dritte Fassung seiner Heldentat — in jeder steht er weiter vorne.\n\nAber Nebelfurt steht. Und wer Mauern hat, braucht als Nächstes das, was Mauern erst gefährlich macht: Geld."
+		},
+		{
+			"id": "kap_04",
+			"scenario": "kampagne_04_muenze",
+			"title": "Kapitel 4 — Markt und Münze",
+			"intro": "Vogt Grimbald hat die Bücher geprüft und ist erschüttert: Nebelfurt besitzt Mut, Mauern und Moral — alles Dinge, die man nicht verbuchen kann. «Eine Siedlung ohne Gold», sagt er, «ist nur ein Dorf mit Ambitionen.»\n\nDie Krone verlangt neuerdings Abgaben, und der Schwarze Ratgeber hat die Steuerliste persönlich aufgesetzt. Sechzig Goldstücke bis zum Stichtag. Grabt nach Gold, treibt Handel, erhebt meinetwegen Steuern — Grimbald hat da bereits drei Vorschläge und vier Tabellen.",
+			"outro": "Sechzig Goldstücke, gezählt, gewogen, dreimal nachgezählt — Grimbald wollte nicht aufhören. Der Steuerbote nahm die Truhe entgegen, als hätte er mit weniger gerechnet. Er hatte mit weniger gerechnet.\n\nMan munkelt, der Schwarze Ratgeber habe die Quittung zerknüllt. Papier ist teuer. Es muss ihm wichtig gewesen sein."
+		},
+		{
+			"id": "kap_05",
+			"scenario": "kampagne_05_verrat",
+			"title": "Kapitel 5 — Wein und Verrat",
+			"intro": "Eine Ehre, die keiner erwartet hat: Der König kündigt sich zum Erntefest in Nebelfurt an. Winzer Traubert fällt beinahe in sein leeres Fass — denn der Hof erwartet Wein, zwanzig Fässer, und zwar guten.\n\nDer Schwarze Ratgeber hat das Fest eingefädelt. Das allein wäre Grund genug, die Fässer zu bewachen. Pflanzt Reben, keltert, schenkt aus — und traut niemandem, der nachts mit einem Bohrer am Weinkeller vorbeispaziert.",
+			"outro": "Der König kam, trank und blieb einen halben Tag länger als geplant — für königliche Verhältnisse eine Liebeserklärung. Der Anschlag auf den Keller? Vereitelt, verziehen wird er nicht.\n\nDenn der Bohrer trug ein Wappen. Ein schwarzes. Der König hat es gesehen, bevor der Ratgeber es einstecken konnte — und seitdem ist der Ratgeber nicht mehr bei Hofe. Er ist unterwegs. Hierher."
+		},
+		{
+			"id": "kap_06",
+			"scenario": "kampagne_06_ratgeber",
+			"title": "Kapitel 6 — Der Schwarze Ratgeber",
+			"intro": "Kein Hof mehr, keine Maske mehr. Der Schwarze Ratgeber hat jenseits der Furt eine Festung bezogen und rekrutiert alles, was ein Schwert halten kann und keine Fragen stellt. Sein Angebot an Euch — «Unterwerfung zu Sonderkonditionen» — habt Ihr ungeöffnet zurückgeschickt.\n\nDies ist die letzte Rechnung: Sein Bergfried muss fallen. Rüstet auf, schmiedet Waffen, und macht dem Kleingedruckten ein Ende. Klausel sieben regelt die Seelenfrage — Klausel neun, ganz neu, regelt Euch.",
+			"outro": "Der schwarze Bergfried ist gefallen, und mit ihm ein Mann, der immer nur beriet und nie haftete. Sein letzter Satz, verbürgt von drei Zeugen: «Das war so nicht im Vertrag.»\n\nNebelfurt aber steht — aus Sumpf gebaut, mit Brot begonnen, mit Stein gehalten und mit Wein gefeiert. Die Chronisten nennen es bereits «das Wunder im Nebel». Balduin nennt es «solide Handwerksarbeit». Recht haben beide.\n\nENDE — Krone und Kohl dankt für Eure Regentschaft. Die freien Szenarien warten."
+		}
+	]
+}
