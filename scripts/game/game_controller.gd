@@ -319,6 +319,7 @@ func _on_structure_destroyed(event: Dictionary) -> void:
 	_economy.remove_building_at(event["cell"])
 	EventBus.buildings_changed.emit(_building_list())
 	_emit_market_state()
+	_emit_workforce()
 	var name: String = Database.get_building_def(event["def_id"]).get("display_name", "Ein Bauwerk")
 	EventBus.combat_event.emit("%s wurde zerstört — Bresche!" % name)
 
@@ -410,6 +411,7 @@ func _on_worker_change(def_id: StringName, delta: int) -> void:
 	EventBus.building_state_changed.emit(def_id, _economy.workers_of(def_id), _economy.max_workers_of(def_id))
 	EventBus.housing_changed.emit(
 		_economy.assigned_workers() + _economy.reserved_population, _economy.housing_capacity())
+	_emit_workforce()
 
 ## Forschungsauftrag (M12: zeitbasiert): Kosten sofort, Abschluss nach
 ## duration_ticks; Techs ohne Dauer sind sofort fertig.
@@ -500,6 +502,7 @@ func _on_build(def_id: StringName, cell: Vector2i) -> void:
 			_economy.assigned_workers() + _economy.reserved_population, _economy.housing_capacity())
 	EventBus.buildings_changed.emit(_building_list())
 	_emit_market_state()
+	_emit_workforce()
 
 ## Bauregeln + Freischaltung + Kosten in einem Urteil.
 func _can_build(def_id: StringName, cell: Vector2i) -> Dictionary:
@@ -548,6 +551,7 @@ func _on_demolish(cell: Vector2i) -> void:
 		_economy.assigned_workers() + _economy.reserved_population, _economy.housing_capacity())
 	EventBus.buildings_changed.emit(_building_list())
 	_emit_market_state()
+	_emit_workforce()
 	var message: String = "%s abgerissen" % def.get("display_name", "Gebaeude")
 	if not refund_parts.is_empty():
 		message += " (%s)" % ", ".join(refund_parts)
@@ -673,11 +677,19 @@ func _building_list() -> Array:
 		entries.append({"def_id": building.def_id, "cell": building.cell})
 	return entries
 
+## Belegschaft je Gebaeude-Instanz fuer das sichtbare Dorfleben (M16).
+func _emit_workforce() -> void:
+	var entries: Array = []
+	for building in _economy.buildings:
+		entries.append({"def_id": building.def_id, "cell": building.cell, "workers": building.workers})
+	EventBus.workforce_changed.emit(entries)
+
 ## Sendet den kompletten aktuellen Zustand an die UI (Initialisierung/Reload).
 func _emit_full_state() -> void:
 	EventBus.world_changed.emit(_world)
 	EventBus.buildings_changed.emit(_building_list())
 	_emit_market_state()
+	_emit_workforce()
 	_emit_worker_rows()
 	# Nur freigeschaltete Ressourcen melden — gesperrte bleiben unsichtbar.
 	for resource_id in Database.resources:

@@ -14,6 +14,10 @@ signal camera_bounds_changed(bounds: Rect2)
 ## (Array aus {"def_id": StringName, "cell": Vector2i}).
 signal buildings_changed(building_list: Array)
 
+## Controller -> Welt-Darstellung: Belegschaft je Gebaeude-Instanz (M16,
+## Array aus {"def_id", "cell", "workers"}) fuer das sichtbare Dorfleben.
+signal workforce_changed(building_list: Array)
+
 ## Controller -> UI: baubare (freigeschaltete) Gebaeude fuer das Baumenue.
 signal build_options_changed(def_ids: Array)
 

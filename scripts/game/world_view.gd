@@ -34,6 +34,7 @@ var _ambient_root: Node2D  # wilde Ambient-Tiere (unter Gebaeuden gezeichnet)
 var _buildings_root: Node2D
 var _props_root: Node2D  # Kleindeko (Brunnen/Heuhaufen/Zaun) neben Gebaeuden
 var _livestock_root: Node2D  # Nutztiere neben Gebaeuden (ueber Gebaeuden gezeichnet)
+var _villagers_root: Node2D  # pendelnde Dorfbewohner (M16, sichtbares Dorfleben)
 var _combat_root: Node2D
 var _units_root: Node2D
 var _bounds := Rect2()
@@ -48,6 +49,9 @@ var _build_def_id: StringName = &""  # aktiver Bau-Modus (leer = aus)
 var _demolish_mode := false  # aktiver Abriss-Modus (M11)
 var _ghost: Sprite2D
 var _ghost_cell := Vector2i.ZERO  # Zelle, auf der der Geist steht (= Bau-/Abrissziel)
+var _village := VillageLife.new()  # Bewegungs-Logik der Dorfbewohner (pures Modell)
+var _villager_sprites: Dictionary = {}  # Bewohner-ID -> Sprite2D
+var _anim_time: float = 0.0  # gemeinsame Uhr fuer prozedurale Animationen
 
 func _ready() -> void:
 	_ground = TileMapLayer.new()
@@ -61,15 +65,17 @@ func _ready() -> void:
 	_buildings_root = Node2D.new()
 	_props_root = Node2D.new()
 	_livestock_root = Node2D.new()
+	_villagers_root = Node2D.new()
 	_combat_root = Node2D.new()
 	_units_root = Node2D.new()
-	for child in [_ground, _decor, _mountain_root, _paths, _features, _ambient_root, _buildings_root, _props_root, _signs_root, _livestock_root, _combat_root, _units_root]:
+	for child in [_ground, _decor, _mountain_root, _paths, _features, _ambient_root, _buildings_root, _props_root, _signs_root, _livestock_root, _villagers_root, _combat_root, _units_root]:
 		add_child(child)
 	_ghost = Sprite2D.new()
 	_ghost.visible = false
 	add_child(_ghost)
 	EventBus.world_changed.connect(_on_world_changed)
 	EventBus.buildings_changed.connect(_on_buildings_changed)
+	EventBus.workforce_changed.connect(_on_workforce_changed)
 	EventBus.combat_state_changed.connect(_on_combat_state_changed)
 	EventBus.tower_shots.connect(_on_tower_shots)
 	EventBus.build_mode_selected.connect(_enter_build_mode)
@@ -212,8 +218,10 @@ func _on_preview_result(cell: Vector2i, ok: bool) -> void:
 	_ghost.modulate = Color(0.5, 1.0, 0.5, 0.7) if ok else Color(1.0, 0.35, 0.35, 0.7)
 
 func _process(delta: float) -> void:
+	_anim_time += delta
 	_move_perf_units(delta)
 	_move_ambient(delta)
+	_move_villagers(delta)
 	_follow_mouse_in_build_mode()
 
 ## Geist folgt der Maus per Polling — Bewegungs-Events koennen vom GUI
@@ -382,6 +390,56 @@ func _spawn_livestock(building_list: Array) -> void:
 		sprite.texture = AssetRegistry.get_texture(StringName("animal_%s" % spawn["type"]))
 		sprite.position = _ground.map_to_local(spawn["cell"]) + Vector2(0, -6)
 		_livestock_root.add_child(sprite)
+
+## Belegschaft hat sich geaendert (M16): Modell abgleichen, Sprites
+## verschwundener Bewohner entfernen.
+func _on_workforce_changed(building_list: Array) -> void:
+	_village.sync(building_list, Database.buildings)
+	var alive: Dictionary = {}
+	for villager in _village.villagers:
+		alive[villager.id] = true
+	for id in _villager_sprites.keys():
+		if not alive.has(id):
+			_villager_sprites[id].queue_free()
+			_villager_sprites.erase(id)
+
+## Bewegt und zeichnet die Dorfbewohner: Position aus dem Modell, Animation
+## prozedural (Lauf-Wippen, Blickrichtung, Arbeits-Wackeln beim Werken);
+## im Gebaeude sind sie unsichtbar — sie treten aus der Tuer und kehren heim.
+func _move_villagers(delta: float) -> void:
+	if _map == null:
+		return
+	_village.advance(delta, _map)
+	for villager in _village.villagers:
+		var sprite: Sprite2D = _villager_sprites.get(villager.id)
+		if sprite == null:
+			sprite = Sprite2D.new()
+			sprite.texture = AssetRegistry.get_texture(&"unit_villager")
+			_villagers_root.add_child(sprite)
+			_villager_sprites[villager.id] = sprite
+		sprite.visible = villager.state != VillageLife.STATE_HOME
+		if not sprite.visible:
+			continue
+		var base := _cell_to_local(villager.pos)
+		var walking: bool = villager.state == VillageLife.STATE_TO_WORK \
+			or villager.state == VillageLife.STATE_TO_HOME
+		var bob := absf(sin(_anim_time * 9.0 + villager.phase)) * 2.0 if walking else 0.0
+		var new_pos := base + Vector2(0, -10.0 - bob)
+		if walking and absf(new_pos.x - sprite.position.x) > 0.01:
+			sprite.flip_h = new_pos.x < sprite.position.x  # Blick in Laufrichtung
+		sprite.position = new_pos
+		# Werkeln: leichtes Hin-und-her-Neigen (Hacken/Saegen), sonst gerade.
+		sprite.rotation = sin(_anim_time * 10.0 + villager.phase) * 0.12 \
+			if villager.state == VillageLife.STATE_WORKING else 0.0
+		sprite.z_index = int(base.y)
+
+## Fraktionale Zellkoordinaten -> lokale Pixel (lineare Iso-Abbildung;
+## map_to_local kennt nur ganze Zellen).
+func _cell_to_local(cell: Vector2) -> Vector2:
+	var origin := _ground.map_to_local(Vector2i.ZERO)
+	var basis_x := _ground.map_to_local(Vector2i(1, 0)) - origin
+	var basis_y := _ground.map_to_local(Vector2i(0, 1)) - origin
+	return origin + basis_x * cell.x + basis_y * cell.y
 
 ## Zeichnet den Kampfzustand: gegnerischer Bergfried und alle Einheiten
 ## (Sprites werden je Einheiten-ID wiederverwendet; Gefallene verschwinden).
