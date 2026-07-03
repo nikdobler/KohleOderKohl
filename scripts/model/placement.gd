@@ -9,11 +9,17 @@ extends RefCounted
 ##                 Fels, z. B. Festungswerke)
 ##   "near": {"feature": ..., "radius": N} — braucht ein Merkmal in der Naehe
 ##           (z. B. Holzfaeller braucht Baeume)
+##   "near_biome": {"biome": ..., "radius": N} — braucht ein Biom in der Naehe
+##           (M13: z. B. Fischersteg braucht Wasser)
 ## Rein und headless testbar; liefert deutsche Begruendungen fuer die UI.
 
 const _FEATURE_NAMES: Dictionary = {
 	&"tree": "Bäume",
 	&"rock": "Fels",
+}
+const _BIOME_NAMES: Dictionary = {
+	&"water": "Wasser",
+	&"swamp": "Sumpf",
 }
 
 ## Prueft, ob [param def] auf [param cell] gebaut werden darf.
@@ -54,15 +60,19 @@ static func _check_feature(placement: Dictionary, feature: StringName) -> Dictio
 			return _no("Ungültige Bauregel.")
 	return {"ok": true, "reason": ""}
 
-## Umgebungs-Anforderung pruefen (z. B. Baeume im Radius).
+## Umgebungs-Anforderungen pruefen (Merkmal und/oder Biom im Radius).
 static func _check_near(placement: Dictionary, cell: Vector2i, world: WorldMap) -> Dictionary:
 	var near: Dictionary = placement.get("near", {})
-	if near.is_empty():
-		return {"ok": true, "reason": ""}
-	var feature := StringName(near.get("feature", ""))
-	if world.has_feature_near(cell, feature, int(near.get("radius", 1))):
-		return {"ok": true, "reason": ""}
-	return _no("Braucht %s in der Nähe." % _FEATURE_NAMES.get(feature, String(feature)))
+	if not near.is_empty():
+		var feature := StringName(near.get("feature", ""))
+		if not world.has_feature_near(cell, feature, int(near.get("radius", 1))):
+			return _no("Braucht %s in der Nähe." % _FEATURE_NAMES.get(feature, String(feature)))
+	var near_biome: Dictionary = placement.get("near_biome", {})
+	if not near_biome.is_empty():
+		var biome := StringName(near_biome.get("biome", ""))
+		if not world.has_biome_near(cell, biome, int(near_biome.get("radius", 1))):
+			return _no("Braucht %s in der Nähe." % _BIOME_NAMES.get(biome, String(biome)))
+	return {"ok": true, "reason": ""}
 
 static func _no(reason: String) -> Dictionary:
 	return {"ok": false, "reason": reason}

@@ -86,6 +86,23 @@ func get_elevation(cell: Vector2i) -> float:
 		return 0.0
 	return _cell_elevation[cell.y * width + cell.x]
 
+## 4-Bit-Kantenmaske fuer Autotiling (§8.3): welche der vier Iso-Seitennachbarn
+## zur "Wassergruppe" (Wasser ODER Fluss) gehoeren. Gesetztes Bit = Innenkante
+## (nahtloser Uebergang), geloeschtes Bit = Uferkante (Land / Kartenrand).
+## Bit 1 = oben-rechts (0,-1), 2 = unten-rechts (1,0), 4 = unten-links (0,1),
+## 8 = oben-links (-1,0) — passend zur Diamant-Kachel (DIAMOND_DOWN).
+func water_edge_mask(cell: Vector2i) -> int:
+	var mask := 0
+	if _is_water_group(cell + Vector2i(0, -1)): mask |= 1
+	if _is_water_group(cell + Vector2i(1, 0)): mask |= 2
+	if _is_water_group(cell + Vector2i(0, 1)): mask |= 4
+	if _is_water_group(cell + Vector2i(-1, 0)): mask |= 8
+	return mask
+
+## Gehoert die Zelle zur Wassergruppe (See oder Fluss)? Kartenrand = nein.
+func _is_water_group(cell: Vector2i) -> bool:
+	return get_biome(cell) == &"water" or is_river(cell)
+
 ## Ufer-Wasserzelle? (Wasser mit mindestens einem Nicht-Wasser-Nachbarn, inkl.
 ## Kartenrand). Rendert als Flachwasser; Wasser ohne Landnachbar als Tiefwasser.
 func is_water_shore(cell: Vector2i) -> bool:
@@ -141,6 +158,15 @@ func has_feature_near(cell: Vector2i, feature: StringName, radius: int) -> bool:
 	for dy in range(-radius, radius + 1):
 		for dx in range(-radius, radius + 1):
 			if get_feature(cell + Vector2i(dx, dy)) == feature:
+				return true
+	return false
+
+## Gibt es das Biom im (quadratischen) Umkreis um die Zelle?
+## (M13: z. B. Fischersteg braucht Wasser in der Naehe.)
+func has_biome_near(cell: Vector2i, biome: StringName, radius: int) -> bool:
+	for dy in range(-radius, radius + 1):
+		for dx in range(-radius, radius + 1):
+			if get_biome(cell + Vector2i(dx, dy)) == biome:
 				return true
 	return false
 

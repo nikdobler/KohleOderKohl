@@ -20,7 +20,31 @@ func run() -> Array:
 	_test_near_rule(failures)
 	_test_occupied_and_bounds(failures)
 	_test_not_buildable_without_placement(failures)
+	_test_near_biome_rule(failures)
 	return failures
+
+## M13: Fischersteg braucht Wasser im Umkreis (near_biome-Regel).
+func _test_near_biome_rule(failures: Array) -> void:
+	var hut := Database.get_building_def(&"fishing_hut")
+	var near_water := Vector2i(-1, -1)
+	var far_from_water := Vector2i(-1, -1)
+	for y in _SIZE:
+		for x in _SIZE:
+			var cell := Vector2i(x, y)
+			if _world.get_biome(cell) != &"grassland" or _world.get_feature(cell) != &"" \
+					or not _world.is_walkable(cell):
+				continue
+			if _world.has_biome_near(cell, &"water", 2):
+				if near_water.x < 0:
+					near_water = cell
+			elif far_from_water.x < 0:
+				far_from_water = cell
+	if near_water.x >= 0 and not Placement.can_place(hut, near_water, _world, {})["ok"]:
+		failures.append("Wasser: Fischersteg am Ufer muss gehen")
+	if far_from_water.x >= 0:
+		var verdict := Placement.can_place(hut, far_from_water, _world, {})
+		if verdict["ok"] or not verdict["reason"].contains("Wasser"):
+			failures.append("Wasser: Fischersteg ohne Wasser muss mit Begruendung scheitern")
 
 ## Sucht eine Zelle mit Biom/Merkmal (Merkmal "" = frei, "*" = egal).
 func _find_cell(biome: StringName, feature: String) -> Vector2i:

@@ -29,6 +29,7 @@ func run() -> Array:
 	_test_tower_ignores_player_and_out_of_range(failures)
 	_test_tower_stats_roundtrip(failures)
 	_test_ranged_unit_strikes_from_distance(failures)
+	_test_command_move_posts_unit(failures)
 	_test_remove_obstacle_reopens_path(failures)
 	_test_roundtrip(failures)
 	return failures
@@ -345,6 +346,35 @@ func _test_ranged_unit_strikes_from_distance(failures: Array) -> void:
 	# Nahkampf-Gegner muss erst heran: Schuetze bleibt, Raider naehert sich.
 	if combat._cheb(raider.cell, archer.cell) >= 3:
 		failures.append("Fernkampf: Nahkaempfer muss aufschliessen (%s)" % raider.cell)
+
+## M13: Bewegungsbefehl — Einheit marschiert zum neuen Posten (mit
+## Wegfindung um Mauern), haelt dort Wache und verteidigt den Posten.
+func _test_command_move_posts_unit(failures: Array) -> void:
+	var combat := _make_system(100, 100)
+	combat.setup_grid(12, 12, [])
+	for x in range(2, 6):
+		combat.add_obstacle(Vector2i(x, 4), &"wall", 900)  # Mauerstueck im Weg
+	var sword := combat.add_unit(&"swordsman", CombatSystem.FACTION_PLAYER,
+		Vector2i(3, 2), CombatSystem.STANCE_ASSAULT, Vector2i(3, 2))
+	if not combat.command_move(sword.id, Vector2i(3, 7)):
+		failures.append("Befehl: gueltige Einheit muss Befehl annehmen")
+	if combat.command_move(999, Vector2i(1, 1)):
+		failures.append("Befehl: unbekannte ID muss abgelehnt werden")
+	for i in 20:
+		combat.tick()
+	if sword.cell != Vector2i(3, 7):
+		failures.append("Befehl: Einheit muss den Posten erreichen (%s)" % sword.cell)
+	for cell in combat.obstacles:
+		if combat.obstacles[cell]["hp"] < 900:
+			failures.append("Befehl: eigene Mauer darf beim Marsch nicht leiden")
+			return
+	# Feind nahe dem Posten wird angegriffen (Wache am neuen Standort).
+	var raider := combat.add_unit(&"raider", CombatSystem.FACTION_ENEMY,
+		Vector2i(5, 8), CombatSystem.STANCE_GUARD, Vector2i(5, 8))
+	for i in 6:
+		combat.tick()
+	if raider.hp >= 12:
+		failures.append("Befehl: Posten muss nahe Feinde bekaempfen (hp %d)" % raider.hp)
 
 ## M11: Abriss (remove_obstacle) oeffnet den Weg im Gitter wieder —
 ## der Feind laeuft durch die Luecke, ohne anzugreifen.

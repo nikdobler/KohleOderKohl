@@ -21,6 +21,7 @@ func run() -> Array:
 	_test_policies_affect_feeding_and_mood(failures)
 	_test_threat_lowers_mood(failures)
 	_test_luxuries_boost_mood(failures)
+	_test_taxes_and_trade(failures)
 	_test_economy_roundtrip(failures)
 	return failures
 
@@ -273,6 +274,38 @@ func _test_luxuries_boost_mood(failures: Array) -> void:
 	if eco.get_stock(&"beer") != 3 or eco.get_stock(&"wine") != 1:
 		failures.append("Luxus: Verbrauch falsch (Bier %d, Wein %d)" % [
 			eco.get_stock(&"beer"), eco.get_stock(&"wine")])
+
+## M13: Steuern bringen Gold je Bewohner und druecken die Laune;
+## Handel kauft zum doppelten und verkauft zum einfachen Grundpreis.
+func _test_taxes_and_trade(failures: Array) -> void:
+	var eco := Economy.new()
+	eco.add_building(_make_house(4))
+	var b := _make_woodcutter()
+	b.max_workers = 2
+	b.set_workers(2)
+	eco.add_building(b)
+	eco.stock[&"bread"] = 10
+	eco.tax_level = 2  # hoch: 2 Gold/Bewohner, Laune -8
+	for i in Economy.FOOD_INTERVAL:
+		eco.tick()
+	if eco.get_stock(&"gold") != 4:  # 2 Bewohner x 2 Gold
+		failures.append("Steuern: erwartet 4 Gold, erhalten %d" % eco.get_stock(&"gold"))
+	if eco.satisfaction != 47:  # 50 +5 satt -8 Steuern
+		failures.append("Steuern: erwartet Laune 47, erhalten %d" % eco.satisfaction)
+	# Handel: kaufen kostet 2x Preis, verkaufen bringt 1x (frische Economy
+	# ohne Produktion, damit die Bestaende exakt bleiben)
+	var markt := Economy.new()
+	markt.stock[&"gold"] = 20
+	if not markt.trade(&"wood", 5, 1)["ok"] or markt.get_stock(&"gold") != 10 or markt.get_stock(&"wood") != 5:
+		failures.append("Handel: Kauf falsch (Gold %d, Holz %d)" % [markt.get_stock(&"gold"), markt.get_stock(&"wood")])
+	if not markt.trade(&"wood", -5, 1)["ok"] or markt.get_stock(&"gold") != 15 or markt.get_stock(&"wood") != 0:
+		failures.append("Handel: Verkauf falsch (Gold %d)" % markt.get_stock(&"gold"))
+	if markt.trade(&"wood", -1, 1)["ok"]:
+		failures.append("Handel: Verkauf ohne Ware muss scheitern")
+	if markt.trade(&"wood", 100, 1)["ok"]:
+		failures.append("Handel: Kauf ohne Gold muss scheitern")
+	if markt.trade(&"gold", 1, 0)["ok"]:
+		failures.append("Handel: Ware ohne Preis darf nicht handelbar sein")
 
 ## Bestand, Gebaeude und Zufriedenheit ueberstehen einen Speicher-Roundtrip.
 func _test_economy_roundtrip(failures: Array) -> void:

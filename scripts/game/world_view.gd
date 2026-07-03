@@ -27,6 +27,8 @@ var _map: WorldMap
 var _ground: TileMapLayer
 var _decor: TileMapLayer  # rein dekoratives Gruenzeug (ueber Boden, unter Merkmalen)
 var _mountain_root: Node2D  # grosse Bergkulissen (Y-sortiert, hinter der Siedlung)
+var _paths: TileMapLayer  # Wegenetz zwischen Gebaeuden (ueber Boden, unter Merkmalen)
+var _signs_root: Node2D  # Wegweiser an Weg-Kreuzungen
 var _features: TileMapLayer
 var _ambient_root: Node2D  # wilde Ambient-Tiere (unter Gebaeuden gezeichnet)
 var _buildings_root: Node2D
@@ -38,7 +40,10 @@ var _bounds := Rect2()
 var _tile_sources: Dictionary = {}  # Asset-ID -> Quellen-ID im TileSet
 var _unit_sprites: Dictionary = {}  # Einheiten-ID -> Sprite2D
 var _enemy_keep_sprite: Sprite2D
+var _enemy_campfire: Sprite2D  # Lagerfeuer neben dem gegnerischen Bergfried (§8.6)
 var _farmland_cells: Array = []  # aktuell als Acker (tile_farmland) eingefaerbte Bodenzellen
+var _selected_unit_id := -1  # per Klick gewaehlte eigene Einheit (M13)
+var _last_units: Array = []  # letzter Kampf-Schnappschuss (fuer Klick-Treffer)
 var _build_def_id: StringName = &""  # aktiver Bau-Modus (leer = aus)
 var _demolish_mode := false  # aktiver Abriss-Modus (M11)
 var _ghost: Sprite2D
@@ -49,6 +54,8 @@ func _ready() -> void:
 	_decor = TileMapLayer.new()
 	_mountain_root = Node2D.new()
 	_mountain_root.y_sort_enabled = true  # Kulissen verdecken sich nach Basis-Y
+	_paths = TileMapLayer.new()
+	_signs_root = Node2D.new()
 	_features = TileMapLayer.new()
 	_ambient_root = Node2D.new()
 	_buildings_root = Node2D.new()
@@ -56,7 +63,7 @@ func _ready() -> void:
 	_livestock_root = Node2D.new()
 	_combat_root = Node2D.new()
 	_units_root = Node2D.new()
-	for child in [_ground, _decor, _mountain_root, _features, _ambient_root, _buildings_root, _props_root, _livestock_root, _combat_root, _units_root]:
+	for child in [_ground, _decor, _mountain_root, _paths, _features, _ambient_root, _buildings_root, _props_root, _signs_root, _livestock_root, _combat_root, _units_root]:
 		add_child(child)
 	_ghost = Sprite2D.new()
 	_ghost.visible = false
@@ -87,11 +94,14 @@ func _on_tower_shots(shots: Array) -> void:
 		tween.tween_callback(line.queue_free)
 
 ## F3 = Perf-Test; im Bau-Modus: Linksklick platziert, Rechtsklick/Esc beendet.
+## Ohne Bau-Modus (M13): Linksklick waehlt eigene Einheit bzw. schickt die
+## gewaehlte Einheit auf Posten; Esc hebt die Auswahl auf.
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F3:
 		_toggle_perf_units()
 		return
 	if _build_def_id == &"" and not _demolish_mode:
+		_handle_unit_input(event)
 		return
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
@@ -107,6 +117,50 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		_exit_build_mode()
+
+## Einheiten-Steuerung (M13): Klick auf eigene Einheit = auswaehlen (gelb),
+## Klick auf die Karte = Bewegungsbefehl fuer die Auswahl.
+func _handle_unit_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_select_unit(-1)
+		return
+	if not (event is InputEventMouseButton and event.pressed \
+			and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	var cell := _mouse_cell()
+	var clicked_id := _player_unit_at(cell)
+	if clicked_id >= 0:
+		_select_unit(clicked_id)
+		get_viewport().set_input_as_handled()
+	elif _selected_unit_id >= 0:
+		EventBus.unit_move_requested.emit(_selected_unit_id, cell)
+		get_viewport().set_input_as_handled()
+
+## Eigene Einheit auf/neben der Zelle (Chebyshev <= 1), sonst -1.
+func _player_unit_at(cell: Vector2i) -> int:
+	for unit in _last_units:
+		if unit["faction"] != &"player":
+			continue
+		var delta: Vector2i = unit["cell"] - cell
+		if maxi(absi(delta.x), absi(delta.y)) <= 1:
+			return unit["id"]
+	return -1
+
+func _select_unit(unit_id: int) -> void:
+	_selected_unit_id = unit_id
+	_refresh_unit_highlights()
+
+func _refresh_unit_highlights() -> void:
+	for unit in _last_units:
+		var sprite: Sprite2D = _unit_sprites.get(unit["id"])
+		if sprite == null:
+			continue
+		if unit["id"] == _selected_unit_id:
+			sprite.modulate = Color(1.6, 1.6, 0.7)  # gelb hervorgehoben
+		elif unit["faction"] == &"enemy":
+			sprite.modulate = ENEMY_TINT
+		else:
+			sprite.modulate = Color.WHITE
 
 ## Bau-Modus: Geist erscheint in der Bildschirmmitte (nicht an der Maus, die
 ## beim Menue-Klick noch ueber dem HUD steht) und folgt danach der Maus auf
@@ -179,20 +233,22 @@ func _on_world_changed(map: WorldMap) -> void:
 	_map = map
 	_ground.tile_set = _make_tile_set()
 	_decor.tile_set = _ground.tile_set
+	_paths.tile_set = _ground.tile_set
 	_features.tile_set = _ground.tile_set
 	_ground.clear()
 	_decor.clear()
+	_paths.clear()
 	_features.clear()
 	_farmland_cells.clear()  # Boden wird neu gefuellt -> Acker-Markierungen verwerfen
 	for y in map.height:
 		for x in map.width:
 			var cell := Vector2i(x, y)
 			var biome := map.get_biome(cell)
-			# Fluss vor Wasser vor normalem Biom (Fluss ueberlagert jedes Biom).
+			# Fluss vor Wasser vor normalem Biom; Autotile-Maske waehlt die Kantenkachel.
 			if map.is_river(cell):
-				_set_tile(_ground, cell, "tile_river")
+				_set_tile(_ground, cell, "tile_river_%d" % map.water_edge_mask(cell))
 			elif biome == &"water":
-				_set_tile(_ground, cell, "tile_water_shallow" if map.is_water_shore(cell) else "tile_water_deep")
+				_set_tile(_ground, cell, "tile_water_%d" % map.water_edge_mask(cell))
 			else:
 				_set_tile(_ground, cell, "tile_%s" % biome)
 			var feature := map.get_feature(cell)
@@ -273,8 +329,39 @@ func _on_buildings_changed(building_list: Array) -> void:
 		sprite.texture = AssetRegistry.get_texture(StringName("building_%s" % entry["def_id"]))
 		sprite.position = _ground.map_to_local(entry["cell"]) + Vector2(0, -10)
 		_buildings_root.add_child(sprite)
+	var building_cells: Array = []
+	for entry in building_list:
+		building_cells.append(entry["cell"])
+	_spawn_paths(building_cells)
 	_spawn_props(building_list)
 	_spawn_livestock(building_list)
+
+## Verbindet die Gebaeude zu einem Wegenetz und rendert es maskengetrieben
+## (`tile_path_<maske>`), Wegweiser an Kreuzungen (§8.4/§8.6).
+func _spawn_paths(building_cells: Array) -> void:
+	_paths.clear()
+	for child in _signs_root.get_children():
+		child.queue_free()
+	var network := PathNetwork.build(building_cells, _map)
+	var building_set: Dictionary = {}
+	for cell in building_cells:
+		building_set[cell] = true
+	var dirs := [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
+	for cell in network:
+		if building_set.has(cell):
+			continue  # Gebaeudezelle: der Bau-Sprite deckt sie ab
+		var mask := 0
+		for i in 4:
+			if network.has(cell + dirs[i]):
+				mask |= 1 << i
+		_set_tile(_paths, cell, "tile_path_%d" % mask)
+	for junction in PathNetwork.junctions(network):
+		if building_set.has(junction):
+			continue
+		var sprite := Sprite2D.new()
+		sprite.texture = AssetRegistry.get_texture(&"feature_signpost")
+		sprite.position = _ground.map_to_local(junction) + Vector2(0, -6)
+		_signs_root.add_child(sprite)
 
 ## Zeichnet Kleindeko (Brunnen/Heuhaufen/Zaun) neben Gebaeuden (§8.6).
 func _spawn_props(building_list: Array) -> void:
@@ -318,6 +405,10 @@ func _on_combat_state_changed(snapshot: Dictionary) -> void:
 		if not alive.has(id):
 			_unit_sprites[id].queue_free()
 			_unit_sprites.erase(id)
+	_last_units = snapshot["units"]
+	if _selected_unit_id >= 0 and not alive.has(_selected_unit_id):
+		_selected_unit_id = -1  # Auswahl ist gefallen
+	_refresh_unit_highlights()
 
 func _update_enemy_keep(keep: Dictionary) -> void:
 	if _enemy_keep_sprite == null:
@@ -327,6 +418,13 @@ func _update_enemy_keep(keep: Dictionary) -> void:
 		_combat_root.add_child(_enemy_keep_sprite)
 	_enemy_keep_sprite.position = _ground.map_to_local(keep["cell"]) + Vector2(0, -10)
 	_enemy_keep_sprite.visible = keep["hp"] > 0
+	# Lagerfeuer als Lager-Stimmung daneben (verschwindet mit dem Bergfried).
+	if _enemy_campfire == null:
+		_enemy_campfire = Sprite2D.new()
+		_enemy_campfire.texture = AssetRegistry.get_texture(&"feature_campfire")
+		_combat_root.add_child(_enemy_campfire)
+	_enemy_campfire.position = _ground.map_to_local(keep["cell"]) + Vector2(20, 2)
+	_enemy_campfire.visible = keep["hp"] > 0
 
 ## Isometrisches TileSet mit einer Atlas-Quelle je Asset-ID (lazy befuellt).
 func _make_tile_set() -> TileSet:

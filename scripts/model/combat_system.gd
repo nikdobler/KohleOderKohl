@@ -196,6 +196,17 @@ func remove_obstacle(cell: Vector2i) -> void:
 		obstacles.erase(cell)
 		_clear_obstacle_solid(cell)
 
+## Bewegungsbefehl (M13): die Einheit bezieht einen neuen Wachposten und
+## marschiert dorthin (Wegfindung inklusive); unterwegs und am Ziel verteidigt
+## sie sich gegen Feinde im Wachradius. Rueckgabe: true bei gueltiger Einheit.
+func command_move(unit_id: int, cell: Vector2i) -> bool:
+	for unit in units:
+		if unit.id == unit_id and unit.faction == FACTION_PLAYER and unit.hp > 0:
+			unit.home = cell
+			unit.stance = STANCE_GUARD
+			return true
+	return false
+
 ## Schaltet die Haltung aller Spieler-Einheiten um (Wache <-> Angriff).
 func toggle_player_stance() -> StringName:
 	player_stance = STANCE_ASSAULT if player_stance == STANCE_GUARD else STANCE_GUARD

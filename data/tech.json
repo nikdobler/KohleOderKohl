@@ -2,97 +2,265 @@
 	"stonemasonry": {
 		"id": "stonemasonry",
 		"display_name": "Steinmetzkunst",
-		"cost": { "wood": 15 },
+		"cost": {
+			"wood": 15
+		},
 		"duration_ticks": 15,
 		"prerequisites": [],
-		"unlocks": { "buildings": ["quarry"], "resources": ["stone"] }
+		"unlocks": {
+			"buildings": [
+				"quarry"
+			],
+			"resources": [
+				"stone"
+			]
+		}
 	},
 	"brewing": {
 		"id": "brewing",
 		"display_name": "Braukunst",
-		"cost": { "wood": 10, "bread": 8 },
+		"cost": {
+			"wood": 10,
+			"bread": 8
+		},
 		"duration_ticks": 20,
-		"prerequisites": ["stonemasonry"],
-		"unlocks": { "buildings": ["brewery"], "resources": ["beer"] }
+		"prerequisites": [
+			"stonemasonry"
+		],
+		"unlocks": {
+			"buildings": [
+				"brewery"
+			],
+			"resources": [
+				"beer"
+			]
+		}
 	},
 	"fortification": {
 		"id": "fortification",
 		"display_name": "Festungsbau",
-		"cost": { "wood": 20, "stone": 15 },
+		"cost": {
+			"wood": 20,
+			"stone": 15
+		},
 		"duration_ticks": 25,
-		"prerequisites": ["stonemasonry"],
-		"unlocks": { "buildings": ["wall", "tower", "gate"], "resources": [] }
+		"prerequisites": [
+			"stonemasonry"
+		],
+		"unlocks": {
+			"buildings": [
+				"wall",
+				"tower",
+				"gate"
+			],
+			"resources": []
+		}
 	},
 	"archery": {
 		"id": "archery",
 		"display_name": "Bogenschiessen",
-		"cost": { "wood": 25, "stone": 5 },
+		"cost": {
+			"wood": 25,
+			"stone": 5
+		},
 		"duration_ticks": 20,
-		"prerequisites": ["fortification"],
-		"unlocks": { "buildings": [], "resources": [] }
+		"prerequisites": [
+			"fortification"
+		],
+		"unlocks": {
+			"buildings": [],
+			"resources": []
+		}
 	},
 	"mining": {
 		"id": "mining",
 		"display_name": "Bergbau",
-		"cost": { "wood": 25, "stone": 10 },
+		"cost": {
+			"wood": 25,
+			"stone": 10
+		},
 		"duration_ticks": 25,
-		"prerequisites": ["stonemasonry"],
-		"unlocks": { "buildings": ["iron_mine", "gold_mine"], "resources": ["iron", "gold"] }
+		"prerequisites": [
+			"stonemasonry"
+		],
+		"unlocks": {
+			"buildings": [
+				"iron_mine",
+				"gold_mine"
+			],
+			"resources": [
+				"iron",
+				"gold"
+			]
+		}
 	},
 	"smithing": {
 		"id": "smithing",
 		"display_name": "Schmiedekunst",
-		"cost": { "wood": 20, "iron": 10 },
+		"cost": {
+			"wood": 20,
+			"iron": 10
+		},
 		"duration_ticks": 30,
-		"prerequisites": ["mining"],
-		"unlocks": { "buildings": ["smithy", "armorer"], "resources": ["weapons", "armor"] }
+		"prerequisites": [
+			"mining"
+		],
+		"unlocks": {
+			"buildings": [
+				"smithy",
+				"armorer"
+			],
+			"resources": [
+				"weapons",
+				"armor"
+			]
+		}
 	},
 	"goldsmithing": {
 		"id": "goldsmithing",
 		"display_name": "Goldschmiedekunst",
-		"cost": { "wood": 15, "gold": 8 },
+		"cost": {
+			"wood": 15,
+			"gold": 8
+		},
 		"duration_ticks": 25,
-		"prerequisites": ["mining"],
-		"unlocks": { "buildings": ["jeweler"], "resources": ["jewelry"] }
+		"prerequisites": [
+			"mining"
+		],
+		"unlocks": {
+			"buildings": [
+				"jeweler"
+			],
+			"resources": [
+				"jewelry"
+			]
+		}
 	},
 	"viticulture": {
 		"id": "viticulture",
 		"display_name": "Weinbau",
-		"cost": { "wood": 15, "bread": 10 },
+		"cost": {
+			"wood": 15,
+			"bread": 10
+		},
 		"duration_ticks": 20,
 		"prerequisites": [],
-		"unlocks": { "buildings": ["vineyard", "winery"], "resources": ["grapes", "wine"] }
+		"unlocks": {
+			"buildings": [
+				"vineyard",
+				"winery"
+			],
+			"resources": [
+				"grapes",
+				"wine"
+			]
+		}
 	},
 	"husbandry": {
 		"id": "husbandry",
 		"display_name": "Viehzucht",
-		"cost": { "wood": 12, "wheat": 15 },
+		"cost": {
+			"wood": 12,
+			"wheat": 15
+		},
 		"duration_ticks": 20,
 		"prerequisites": [],
-		"unlocks": { "buildings": ["pig_farm", "dairy_farm"], "resources": ["pig", "milk"] }
+		"unlocks": {
+			"buildings": [
+				"pig_farm",
+				"dairy_farm"
+			],
+			"resources": [
+				"pig",
+				"milk"
+			]
+		}
 	},
 	"processing": {
 		"id": "processing",
 		"display_name": "Veredelung",
-		"cost": { "wood": 15, "pig": 5 },
+		"cost": {
+			"wood": 15,
+			"pig": 5
+		},
 		"duration_ticks": 20,
-		"prerequisites": ["husbandry"],
-		"unlocks": { "buildings": ["butcher", "cheesery"], "resources": ["meat", "cheese"] }
+		"prerequisites": [
+			"husbandry"
+		],
+		"unlocks": {
+			"buildings": [
+				"butcher",
+				"cheesery"
+			],
+			"resources": [
+				"meat",
+				"cheese"
+			]
+		}
 	},
 	"crossbow": {
 		"id": "crossbow",
 		"display_name": "Armbrustbau",
-		"cost": { "wood": 30, "weapons": 5 },
+		"cost": {
+			"wood": 30,
+			"weapons": 5
+		},
 		"duration_ticks": 30,
-		"prerequisites": ["archery", "smithing"],
-		"unlocks": { "buildings": [], "resources": [] }
+		"prerequisites": [
+			"archery",
+			"smithing"
+		],
+		"unlocks": {
+			"buildings": [],
+			"resources": []
+		}
 	},
 	"cannon": {
 		"id": "cannon",
 		"display_name": "Kanonengiesserei",
-		"cost": { "iron": 25, "gold": 10 },
+		"cost": {
+			"iron": 25,
+			"gold": 10
+		},
 		"duration_ticks": 45,
-		"prerequisites": ["crossbow"],
-		"unlocks": { "buildings": [], "resources": [] }
+		"prerequisites": [
+			"crossbow"
+		],
+		"unlocks": {
+			"buildings": [],
+			"resources": []
+		}
+	},
+	"fishing": {
+		"id": "fishing",
+		"display_name": "Fischfang",
+		"cost": {
+			"wood": 12
+		},
+		"duration_ticks": 15,
+		"prerequisites": [],
+		"unlocks": {
+			"buildings": [
+				"fishing_hut"
+			],
+			"resources": [
+				"fish"
+			]
+		}
+	},
+	"trade": {
+		"id": "trade",
+		"display_name": "Handel",
+		"cost": {
+			"wood": 18
+		},
+		"duration_ticks": 15,
+		"prerequisites": [],
+		"unlocks": {
+			"buildings": [
+				"market"
+			],
+			"resources": []
+		}
 	}
 }

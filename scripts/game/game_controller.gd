@@ -143,6 +143,9 @@ func _connect_events() -> void:
 	EventBus.demolish_requested.connect(_on_demolish)
 	EventBus.ration_change_requested.connect(_on_ration_change)
 	EventBus.work_change_requested.connect(_on_work_change)
+	EventBus.tax_change_requested.connect(_on_tax_change)
+	EventBus.trade_requested.connect(_on_trade)
+	EventBus.unit_move_requested.connect(_on_unit_move)
 	EventBus.save_requested.connect(_on_save)
 	EventBus.load_requested.connect(_on_load)
 
@@ -252,6 +255,7 @@ func _handle_combat_event(event: Dictionary) -> void:
 func _on_structure_destroyed(event: Dictionary) -> void:
 	_economy.remove_building_at(event["cell"])
 	EventBus.buildings_changed.emit(_building_list())
+	_emit_market_state()
 	var name: String = Database.get_building_def(event["def_id"]).get("display_name", "Ein Bauwerk")
 	EventBus.combat_event.emit("%s wurde zerstört — Bresche!" % name)
 
@@ -432,6 +436,7 @@ func _on_build(def_id: StringName, cell: Vector2i) -> void:
 		EventBus.housing_changed.emit(
 			_economy.assigned_workers() + _economy.reserved_population, _economy.housing_capacity())
 	EventBus.buildings_changed.emit(_building_list())
+	_emit_market_state()
 
 ## Bauregeln + Freischaltung + Kosten in einem Urteil.
 func _can_build(def_id: StringName, cell: Vector2i) -> Dictionary:
@@ -479,6 +484,7 @@ func _on_demolish(cell: Vector2i) -> void:
 	EventBus.housing_changed.emit(
 		_economy.assigned_workers() + _economy.reserved_population, _economy.housing_capacity())
 	EventBus.buildings_changed.emit(_building_list())
+	_emit_market_state()
 	var message: String = "%s abgerissen" % def.get("display_name", "Gebaeude")
 	if not refund_parts.is_empty():
 		message += " (%s)" % ", ".join(refund_parts)
@@ -516,8 +522,38 @@ func _on_work_change(delta: int) -> void:
 	_economy.work_policy = clampi(_economy.work_policy + delta, 0, 2)
 	_emit_policy()
 
+func _on_tax_change(delta: int) -> void:
+	_economy.tax_level = clampi(_economy.tax_level + delta, 0, 2)
+	_emit_policy()
+
 func _emit_policy() -> void:
-	EventBus.policy_changed.emit(_economy.ration_level, _economy.work_policy, _economy.productivity())
+	EventBus.policy_changed.emit(
+		_economy.ration_level, _economy.work_policy, _economy.tax_level, _economy.productivity())
+
+## Handel am Marktplatz (M13): Preis aus resources.json, Kaufen = 2x Preis.
+func _on_trade(resource_id: StringName, amount: int) -> void:
+	if _economy.get_building(&"market") == null:
+		EventBus.build_failed.emit("Dafür braucht es einen Marktplatz.")
+		return
+	var price := int(Database.get_resource_def(resource_id).get("price", 0))
+	var result := _economy.trade(resource_id, amount, price)
+	if not result["ok"]:
+		EventBus.build_failed.emit(result["reason"])
+		return
+	EventBus.stock_changed.emit(resource_id, _economy.get_stock(resource_id))
+	EventBus.stock_changed.emit(&"gold", _economy.get_stock(&"gold"))
+
+## Bewegungsbefehl an eine Einheit (M13): Ziel muss begehbar und frei sein.
+func _on_unit_move(unit_id: int, cell: Vector2i) -> void:
+	if not _world.is_walkable(cell) or _combat.obstacles.has(cell):
+		EventBus.combat_event.emit("Dorthin führt kein Weg.")
+		return
+	if _combat.command_move(unit_id, cell):
+		EventBus.combat_state_changed.emit(_combat.snapshot())
+
+## Meldet der UI, ob ein Marktplatz steht (Handels-Sektion ein-/ausblenden).
+func _emit_market_state() -> void:
+	EventBus.market_available.emit(_economy.get_building(&"market") != null)
 
 ## Spielstand speichern (Wirtschaft + Forschung + Welt + Kampf -> SaveManager).
 func _on_save() -> void:
@@ -576,6 +612,7 @@ func _building_list() -> Array:
 func _emit_full_state() -> void:
 	EventBus.world_changed.emit(_world)
 	EventBus.buildings_changed.emit(_building_list())
+	_emit_market_state()
 	_emit_worker_rows()
 	# Nur freigeschaltete Ressourcen melden — gesperrte bleiben unsichtbar.
 	for resource_id in Database.resources:

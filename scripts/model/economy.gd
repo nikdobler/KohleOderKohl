@@ -23,6 +23,9 @@ const RATION_MOOD: Array = [-8, 0, 5]
 ## Arbeitszeit: kurz/normal/lang — Arbeitsleistung & Laune.
 const WORK_MULTIPLIERS: Array = [0.8, 1.0, 1.2]
 const WORK_MOOD: Array = [5, 0, -8]
+## Steuern (M13): keine/moderat/hoch — Gold je Bewohner & Laune.
+const TAX_GOLD: Array = [0, 1, 2]
+const TAX_MOOD: Array = [0, -2, -8]
 ## Laune-Malus je Versorgung, wenn Feinde nahe der Siedlung waren.
 const THREAT_MOOD_LOSS: int = 8
 
@@ -37,6 +40,8 @@ var reserved_population: int = 0
 ## Politik-Hebel (Index in RATION_*/WORK_*-Tabellen, 1 = normal).
 var ration_level: int = 1
 var work_policy: int = 1
+## Steuersatz (Index in TAX_*-Tabellen, 0 = keine Steuern).
+var tax_level: int = 0
 ## Luxusgueter (M12): Ressource -> Laune-Bonus je Versorgung. Wird vom
 ## Controller aus resources.json befuellt ("luxury_mood"-Feld). Ist genug
 ## fuer alle Bewohner da, wird verbraucht und die Laune steigt.
@@ -205,11 +210,35 @@ func _feed_workers(changed: Array) -> void:
 		_mark_changed(changed, FOOD_RESOURCE)
 	var delta := SATISFACTION_FED_GAIN if eaten == need else -SATISFACTION_HUNGER_LOSS
 	delta += int(RATION_MOOD[ration_level]) + int(WORK_MOOD[work_policy])
+	delta += int(TAX_MOOD[tax_level])
+	var tax_income := int(TAX_GOLD[tax_level]) * residents
+	if tax_income > 0:
+		stock[&"gold"] = get_stock(&"gold") + tax_income
+		_mark_changed(changed, &"gold")
 	delta += _consume_luxuries(residents, changed)
 	if threatened_since_feeding:
 		delta -= THREAT_MOOD_LOSS
 		threatened_since_feeding = false
 	satisfaction = clampi(satisfaction + delta, 0, 100)
+
+## Handel am Marktplatz (M13): amount > 0 kauft (Kaufpreis = 2x Grundpreis),
+## amount < 0 verkauft zum Grundpreis. Rueckgabe: {"ok", "reason"}.
+func trade(resource: StringName, amount: int, unit_price: int) -> Dictionary:
+	if amount == 0 or unit_price <= 0:
+		return {"ok": false, "reason": "Diese Ware wird nicht gehandelt."}
+	if amount > 0:
+		var cost := amount * unit_price * 2
+		if get_stock(&"gold") < cost:
+			return {"ok": false, "reason": "Nicht genug Gold."}
+		stock[&"gold"] = get_stock(&"gold") - cost
+		stock[resource] = get_stock(resource) + amount
+	else:
+		var sell := -amount
+		if get_stock(resource) < sell:
+			return {"ok": false, "reason": "Nicht genug Ware im Lager."}
+		stock[resource] = get_stock(resource) - sell
+		stock[&"gold"] = get_stock(&"gold") + sell * unit_price
+	return {"ok": true, "reason": ""}
 
 ## Luxusgueter heben die Laune: je Sorte, von der genug fuer alle Bewohner
 ## da ist, wird eine Einheit pro Kopf verbraucht (Bier, Wein, Kaese ...).
@@ -242,6 +271,7 @@ func to_dict() -> Dictionary:
 		"reserved_population": reserved_population,
 		"ration_level": ration_level,
 		"work_policy": work_policy,
+		"tax_level": tax_level,
 	}
 
 ## Stellt die Wirtschaft aus einem gespeicherten Dictionary wieder her.
@@ -259,4 +289,5 @@ func from_dict(d: Dictionary) -> void:
 	reserved_population = int(d.get("reserved_population", 0))
 	ration_level = clampi(int(d.get("ration_level", 1)), 0, 2)
 	work_policy = clampi(int(d.get("work_policy", 1)), 0, 2)
+	tax_level = clampi(int(d.get("tax_level", 0)), 0, 2)
 	threatened_since_feeding = false

@@ -5,6 +5,9 @@ extends Control
 
 const _RATION_NAMES: Array = ["halb", "normal", "doppelt"]
 const _WORK_NAMES: Array = ["kurz", "normal", "lang"]
+const _TAX_NAMES: Array = ["keine", "moderat", "hoch"]
+## Handels-Losgroesse am Marktplatz (M13).
+const _TRADE_LOT: int = 5
 
 @onready var _scenario_label: Label = $Panel/Scroll/VBox/ScenarioLabel
 @onready var _resources_box: VBoxContainer = $Panel/Scroll/VBox/ResourcesBox
@@ -17,7 +20,13 @@ const _WORK_NAMES: Array = ["kurz", "normal", "lang"]
 @onready var _stance_button: Button = $Panel/Scroll/VBox/MilitaryButtons/StanceButton
 @onready var _ration_label: Label = $Panel/Scroll/VBox/RationRow/RationLabel
 @onready var _work_label: Label = $Panel/Scroll/VBox/WorkRow/WorkLabel
+@onready var _tax_label: Label = $Panel/Scroll/VBox/TaxRow/TaxLabel
 @onready var _productivity_label: Label = $Panel/Scroll/VBox/ProductivityLabel
+@onready var _market_title: Label = $Panel/Scroll/VBox/MarketTitle
+@onready var _market_box: VBoxContainer = $Panel/Scroll/VBox/MarketBox
+@onready var _game_over_panel: PanelContainer = $GameOverPanel
+@onready var _result_title: Label = $GameOverPanel/VBox/ResultTitle
+@onready var _result_text: Label = $GameOverPanel/VBox/ResultText
 @onready var _housing_label: Label = $Panel/Scroll/VBox/HousingLabel
 @onready var _satisfaction_label: Label = $Panel/Scroll/VBox/SatisfactionLabel
 @onready var _save_button: Button = $Panel/Scroll/VBox/Buttons/SaveButton
@@ -55,6 +64,12 @@ func _ready() -> void:
 	EventBus.recruit_options_changed.connect(_on_recruit_options_changed)
 	EventBus.build_failed.connect(_flash)
 	EventBus.policy_changed.connect(_on_policy_changed)
+	EventBus.market_available.connect(_on_market_available)
+	$GameOverPanel/VBox/ResultButtons/ContinueButton.pressed.connect(
+		func() -> void: _game_over_panel.visible = false)
+	$GameOverPanel/VBox/ResultButtons/ToMenuButton.pressed.connect(func() -> void:
+		_game_over_panel.visible = false
+		_set_menu_visible(true))
 	EventBus.stock_changed.connect(_on_stock_changed)
 	EventBus.building_state_changed.connect(_on_building_state_changed)
 	EventBus.tech_state_changed.connect(_on_tech_state_changed)
@@ -96,6 +111,10 @@ func _connect_policy_buttons() -> void:
 		func() -> void: EventBus.work_change_requested.emit(-1))
 	$Panel/Scroll/VBox/WorkRow/WorkPlus.pressed.connect(
 		func() -> void: EventBus.work_change_requested.emit(1))
+	$Panel/Scroll/VBox/TaxRow/TaxMinus.pressed.connect(
+		func() -> void: EventBus.tax_change_requested.emit(-1))
+	$Panel/Scroll/VBox/TaxRow/TaxPlus.pressed.connect(
+		func() -> void: EventBus.tax_change_requested.emit(1))
 
 ## FPS-Anzeige fuer den Performance-Nachweis (F3 spawnt 200 Test-Einheiten).
 func _process(_delta: float) -> void:
@@ -106,7 +125,8 @@ func _process(_delta: float) -> void:
 func _on_game_loaded() -> void:
 	for dict in [_resource_labels, _worker_labels, _tech_buttons]:
 		dict.clear()
-	for box in [_resources_box, _buildings_box, _research_box, _build_box, _recruit_box]:
+	_game_over_panel.visible = false
+	for box in [_resources_box, _buildings_box, _research_box, _build_box, _recruit_box, _market_box]:
 		for child in box.get_children():
 			# Nie free() auf moeglicherweise emittierende Buttons.
 			box.remove_child(child)
@@ -184,9 +204,10 @@ func _on_recruit_options_changed(unit_ids: Array) -> void:
 		button.pressed.connect(func() -> void: EventBus.recruit_requested.emit(id))
 		_recruit_box.add_child(button)
 
-func _on_policy_changed(ration_level: int, work_policy: int, productivity: float) -> void:
+func _on_policy_changed(ration_level: int, work_policy: int, tax_level: int, productivity: float) -> void:
 	_ration_label.text = "Rationen: %s" % _RATION_NAMES[ration_level]
 	_work_label.text = "Arbeitszeit: %s" % _WORK_NAMES[work_policy]
+	_tax_label.text = "Steuern: %s" % _TAX_NAMES[tax_level]
 	_productivity_label.text = "Arbeitsleistung: %d %%" % roundi(productivity * 100.0)
 
 func _on_housing_changed(assigned: int, capacity: int) -> void:
@@ -223,6 +244,8 @@ func _on_combat_state_changed(snapshot: Dictionary) -> void:
 		_combat_over = over
 		for child in _recruit_box.get_children():
 			child.disabled = over
+		if over:
+			_show_game_over(snapshot["status"])
 	_stance_button.disabled = over
 
 ## Zeigt einen Dialog-Knoten: Portraet, Sprecher, Text und Antwortoptionen
@@ -334,3 +357,45 @@ func _building_name(id: StringName) -> String:
 
 func _flash(message: String) -> void:
 	_status_label.text = message
+
+## Markt-Sektion (M13): eine Handelszeile je Ware mit Preis
+## ("+5" kauft zum doppelten, "−5" verkauft zum einfachen Grundpreis).
+func _on_market_available(available: bool) -> void:
+	_market_title.visible = available
+	_market_box.visible = available
+	for child in _market_box.get_children():
+		_market_box.remove_child(child)
+		child.queue_free()
+	if not available:
+		return
+	for res_id in Database.resources:
+		var price := int(Database.resources[res_id].get("price", 0))
+		if price <= 0:
+			continue
+		_market_box.add_child(_make_trade_row(StringName(res_id), price))
+
+func _make_trade_row(resource_id: StringName, price: int) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	var label := Label.new()
+	label.text = "%s (%d G)" % [_resource_name(resource_id), price]
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+	var sell := Button.new()
+	sell.text = "−%d" % _TRADE_LOT
+	sell.pressed.connect(func() -> void: EventBus.trade_requested.emit(resource_id, -_TRADE_LOT))
+	row.add_child(sell)
+	var buy := Button.new()
+	buy.text = "+%d" % _TRADE_LOT
+	buy.pressed.connect(func() -> void: EventBus.trade_requested.emit(resource_id, _TRADE_LOT))
+	row.add_child(buy)
+	return row
+
+## Sieg-/Niederlage-Abschluss (M13).
+func _show_game_over(status: StringName) -> void:
+	_game_over_panel.visible = true
+	if status == &"victory":
+		_result_title.text = "Sieg!"
+		_result_text.text = "Der feindliche Bergfried ist gefallen. Die Chronisten schreiben bereits — und Ritter Kunz behauptet, er sei dabei gewesen."
+	else:
+		_result_title.text = "Niederlage"
+		_result_text.text = "Der Bergfried ist gefallen. Der Schwarze Ratgeber lächelt. Versucht es erneut — die Szenarien warten."

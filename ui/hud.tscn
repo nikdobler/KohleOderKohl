@@ -123,9 +123,34 @@ text = "-"
 layout_mode = 2
 text = "+"
 
+[node name="TaxRow" type="HBoxContainer" parent="Panel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="TaxLabel" type="Label" parent="Panel/Scroll/VBox/TaxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Steuern: keine"
+
+[node name="TaxMinus" type="Button" parent="Panel/Scroll/VBox/TaxRow"]
+layout_mode = 2
+text = "-"
+
+[node name="TaxPlus" type="Button" parent="Panel/Scroll/VBox/TaxRow"]
+layout_mode = 2
+text = "+"
+
 [node name="ProductivityLabel" type="Label" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 text = "Arbeitsleistung: 100 %"
+
+[node name="MarketTitle" type="Label" parent="Panel/Scroll/VBox"]
+visible = false
+layout_mode = 2
+text = "— Markt (Kauf 2x / Verkauf 1x) —"
+
+[node name="MarketBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+visible = false
+layout_mode = 2
 
 [node name="HousingLabel" type="Label" parent="Panel/Scroll/VBox"]
 layout_mode = 2
@@ -195,6 +220,48 @@ text = ""
 
 [node name="ChoicesBox" type="VBoxContainer" parent="DialoguePanel/HBox/VBox"]
 layout_mode = 2
+
+[node name="GameOverPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -110.0
+offset_right = 220.0
+offset_bottom = 110.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="GameOverPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ResultTitle" type="Label" parent="GameOverPanel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Sieg!"
+
+[node name="ResultText" type="Label" parent="GameOverPanel/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+horizontal_alignment = 1
+text = ""
+
+[node name="ResultButtons" type="HBoxContainer" parent="GameOverPanel/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="ContinueButton" type="Button" parent="GameOverPanel/VBox/ResultButtons"]
+layout_mode = 2
+text = "Weiterspielen"
+
+[node name="ToMenuButton" type="Button" parent="GameOverPanel/VBox/ResultButtons"]
+layout_mode = 2
+text = "Szenarien"
 
 [node name="ScenarioMenu" type="PanelContainer" parent="."]
 layout_mode = 1

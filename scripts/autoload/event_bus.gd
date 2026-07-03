@@ -41,9 +41,19 @@ signal demolish_requested(cell: Vector2i)
 ## UI -> Controller: Politik-Hebel aendern (-1/+1).
 signal ration_change_requested(delta: int)
 signal work_change_requested(delta: int)
+signal tax_change_requested(delta: int)
 
 ## Controller -> UI: Politik & resultierende Arbeitsleistung.
-signal policy_changed(ration_level: int, work_policy: int, productivity: float)
+signal policy_changed(ration_level: int, work_policy: int, tax_level: int, productivity: float)
+
+## UI -> Controller: Handel am Marktplatz (amount > 0 kaufen, < 0 verkaufen).
+signal trade_requested(resource_id: StringName, amount: int)
+
+## Controller -> UI: Marktplatz vorhanden? (blendet die Handels-Sektion ein).
+signal market_available(available: bool)
+
+## Welt-Darstellung -> Controller: Bewegungsbefehl fuer eine Einheit (M13).
+signal unit_move_requested(unit_id: int, cell: Vector2i)
 
 ## Controller -> UI: Bestand einer Ressource hat sich geaendert.
 signal stock_changed(resource_id: StringName, amount: int)
