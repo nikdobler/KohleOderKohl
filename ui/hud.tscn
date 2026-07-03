@@ -12,176 +12,261 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_hud")
 
-[node name="Panel" type="PanelContainer" parent="."]
-layout_mode = 0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = 390.0
-offset_bottom = 700.0
+[node name="TopBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+offset_bottom = 40.0
 
-[node name="Scroll" type="ScrollContainer" parent="Panel"]
+[node name="HBox" type="HBoxContainer" parent="TopBar"]
 layout_mode = 2
-horizontal_scroll_mode = 0
+theme_override_constants/separation = 14
 
-[node name="VBox" type="VBoxContainer" parent="Panel/Scroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="Title" type="Label" parent="Panel/Scroll/VBox"]
+[node name="Title" type="Label" parent="TopBar/HBox"]
 layout_mode = 2
 text = "Krone und Kohl"
 
-[node name="ScenarioLabel" type="Label" parent="Panel/Scroll/VBox"]
+[node name="ResourcesBox" type="HBoxContainer" parent="TopBar/HBox"]
 layout_mode = 2
-autowrap_mode = 3
-text = ""
+theme_override_constants/separation = 12
 
-[node name="QuestBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+[node name="Spacer" type="Control" parent="TopBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HousingLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Wohnraum: 0 / 0"
+
+[node name="SatisfactionLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Zufriedenheit: 50 %"
+
+[node name="FpsLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "FPS: –"
+
+[node name="LeftPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+grow_vertical = 2
+offset_left = 10.0
+offset_top = 48.0
+offset_right = 320.0
+offset_bottom = -104.0
+
+[node name="Scroll" type="ScrollContainer" parent="LeftPanel"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="VBox" type="VBoxContainer" parent="LeftPanel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="BuildSection" type="VBoxContainer" parent="LeftPanel/Scroll/VBox"]
 layout_mode = 2
 
-[node name="ResourcesTitle" type="Label" parent="Panel/Scroll/VBox"]
+[node name="Header" type="Button" parent="LeftPanel/Scroll/VBox/BuildSection"]
 layout_mode = 2
-text = "— Lager —"
+alignment = 0
+text = "Bauen"
 
-[node name="ResourcesBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
-layout_mode = 2
-
-[node name="BuildingsTitle" type="Label" parent="Panel/Scroll/VBox"]
-layout_mode = 2
-text = "— Arbeiter —"
-
-[node name="BuildingsBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+[node name="Content" type="VBoxContainer" parent="LeftPanel/Scroll/VBox/BuildSection"]
+visible = false
 layout_mode = 2
 
-[node name="BuildTitle" type="Label" parent="Panel/Scroll/VBox"]
-layout_mode = 2
-text = "— Bauen —"
-
-[node name="BuildBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+[node name="BuildBox" type="VBoxContainer" parent="LeftPanel/Scroll/VBox/BuildSection/Content"]
 layout_mode = 2
 
-[node name="ResearchTitle" type="Label" parent="Panel/Scroll/VBox"]
-layout_mode = 2
-text = "— Forschung —"
-
-[node name="ResearchBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+[node name="WorkersSection" type="VBoxContainer" parent="LeftPanel/Scroll/VBox"]
 layout_mode = 2
 
-[node name="MilitaryTitle" type="Label" parent="Panel/Scroll/VBox"]
+[node name="Header" type="Button" parent="LeftPanel/Scroll/VBox/WorkersSection"]
 layout_mode = 2
-text = "— Militär —"
+alignment = 0
+text = "Arbeiter"
 
-[node name="KeepLabel" type="Label" parent="Panel/Scroll/VBox"]
+[node name="Content" type="VBoxContainer" parent="LeftPanel/Scroll/VBox/WorkersSection"]
+visible = false
+layout_mode = 2
+
+[node name="BuildingsBox" type="VBoxContainer" parent="LeftPanel/Scroll/VBox/WorkersSection/Content"]
+layout_mode = 2
+
+[node name="ResearchSection" type="VBoxContainer" parent="LeftPanel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="Header" type="Button" parent="LeftPanel/Scroll/VBox/ResearchSection"]
+layout_mode = 2
+alignment = 0
+text = "Forschung"
+
+[node name="Content" type="VBoxContainer" parent="LeftPanel/Scroll/VBox/ResearchSection"]
+visible = false
+layout_mode = 2
+
+[node name="ResearchBox" type="VBoxContainer" parent="LeftPanel/Scroll/VBox/ResearchSection/Content"]
+layout_mode = 2
+
+[node name="MilitarySection" type="VBoxContainer" parent="LeftPanel/Scroll/VBox"]
+layout_mode = 2
+
+[node name="Header" type="Button" parent="LeftPanel/Scroll/VBox/MilitarySection"]
+layout_mode = 2
+alignment = 0
+text = "Militär"
+
+[node name="Content" type="VBoxContainer" parent="LeftPanel/Scroll/VBox/MilitarySection"]
+visible = false
+layout_mode = 2
+
+[node name="KeepLabel" type="Label" parent="LeftPanel/Scroll/VBox/MilitarySection/Content"]
 layout_mode = 2
 text = "Bergfried: – · Feind: –"
 
-[node name="ArmyLabel" type="Label" parent="Panel/Scroll/VBox"]
+[node name="ArmyLabel" type="Label" parent="LeftPanel/Scroll/VBox/MilitarySection/Content"]
 layout_mode = 2
 text = "Soldaten: 0"
 
-[node name="RecruitBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+[node name="RecruitBox" type="VBoxContainer" parent="LeftPanel/Scroll/VBox/MilitarySection/Content"]
 layout_mode = 2
 
-[node name="MilitaryButtons" type="HBoxContainer" parent="Panel/Scroll/VBox"]
+[node name="MilitaryButtons" type="HBoxContainer" parent="LeftPanel/Scroll/VBox/MilitarySection/Content"]
 layout_mode = 2
 
-[node name="StanceButton" type="Button" parent="Panel/Scroll/VBox/MilitaryButtons"]
+[node name="StanceButton" type="Button" parent="LeftPanel/Scroll/VBox/MilitarySection/Content/MilitaryButtons"]
 layout_mode = 2
 text = "Angriff!"
 
-[node name="PolicyTitle" type="Label" parent="Panel/Scroll/VBox"]
-layout_mode = 2
-text = "— Politik —"
-
-[node name="RationRow" type="HBoxContainer" parent="Panel/Scroll/VBox"]
+[node name="PolicySection" type="VBoxContainer" parent="LeftPanel/Scroll/VBox"]
 layout_mode = 2
 
-[node name="RationLabel" type="Label" parent="Panel/Scroll/VBox/RationRow"]
+[node name="Header" type="Button" parent="LeftPanel/Scroll/VBox/PolicySection"]
+layout_mode = 2
+alignment = 0
+text = "Politik"
+
+[node name="Content" type="VBoxContainer" parent="LeftPanel/Scroll/VBox/PolicySection"]
+visible = false
+layout_mode = 2
+
+[node name="RationRow" type="HBoxContainer" parent="LeftPanel/Scroll/VBox/PolicySection/Content"]
+layout_mode = 2
+
+[node name="RationLabel" type="Label" parent="LeftPanel/Scroll/VBox/PolicySection/Content/RationRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Rationen: normal"
 
-[node name="RationMinus" type="Button" parent="Panel/Scroll/VBox/RationRow"]
+[node name="RationMinus" type="Button" parent="LeftPanel/Scroll/VBox/PolicySection/Content/RationRow"]
 layout_mode = 2
 text = "-"
 
-[node name="RationPlus" type="Button" parent="Panel/Scroll/VBox/RationRow"]
+[node name="RationPlus" type="Button" parent="LeftPanel/Scroll/VBox/PolicySection/Content/RationRow"]
 layout_mode = 2
 text = "+"
 
-[node name="WorkRow" type="HBoxContainer" parent="Panel/Scroll/VBox"]
+[node name="WorkRow" type="HBoxContainer" parent="LeftPanel/Scroll/VBox/PolicySection/Content"]
 layout_mode = 2
 
-[node name="WorkLabel" type="Label" parent="Panel/Scroll/VBox/WorkRow"]
+[node name="WorkLabel" type="Label" parent="LeftPanel/Scroll/VBox/PolicySection/Content/WorkRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Arbeitszeit: normal"
 
-[node name="WorkMinus" type="Button" parent="Panel/Scroll/VBox/WorkRow"]
+[node name="WorkMinus" type="Button" parent="LeftPanel/Scroll/VBox/PolicySection/Content/WorkRow"]
 layout_mode = 2
 text = "-"
 
-[node name="WorkPlus" type="Button" parent="Panel/Scroll/VBox/WorkRow"]
+[node name="WorkPlus" type="Button" parent="LeftPanel/Scroll/VBox/PolicySection/Content/WorkRow"]
 layout_mode = 2
 text = "+"
 
-[node name="TaxRow" type="HBoxContainer" parent="Panel/Scroll/VBox"]
+[node name="TaxRow" type="HBoxContainer" parent="LeftPanel/Scroll/VBox/PolicySection/Content"]
 layout_mode = 2
 
-[node name="TaxLabel" type="Label" parent="Panel/Scroll/VBox/TaxRow"]
+[node name="TaxLabel" type="Label" parent="LeftPanel/Scroll/VBox/PolicySection/Content/TaxRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Steuern: keine"
 
-[node name="TaxMinus" type="Button" parent="Panel/Scroll/VBox/TaxRow"]
+[node name="TaxMinus" type="Button" parent="LeftPanel/Scroll/VBox/PolicySection/Content/TaxRow"]
 layout_mode = 2
 text = "-"
 
-[node name="TaxPlus" type="Button" parent="Panel/Scroll/VBox/TaxRow"]
+[node name="TaxPlus" type="Button" parent="LeftPanel/Scroll/VBox/PolicySection/Content/TaxRow"]
 layout_mode = 2
 text = "+"
 
-[node name="ProductivityLabel" type="Label" parent="Panel/Scroll/VBox"]
+[node name="ProductivityLabel" type="Label" parent="LeftPanel/Scroll/VBox/PolicySection/Content"]
 layout_mode = 2
 text = "Arbeitsleistung: 100 %"
 
-[node name="MarketTitle" type="Label" parent="Panel/Scroll/VBox"]
-visible = false
-layout_mode = 2
-text = "— Markt (Kauf 2x / Verkauf 1x) —"
-
-[node name="MarketBox" type="VBoxContainer" parent="Panel/Scroll/VBox"]
+[node name="MarketSection" type="VBoxContainer" parent="LeftPanel/Scroll/VBox"]
 visible = false
 layout_mode = 2
 
-[node name="HousingLabel" type="Label" parent="Panel/Scroll/VBox"]
+[node name="Header" type="Button" parent="LeftPanel/Scroll/VBox/MarketSection"]
 layout_mode = 2
-text = "Wohnraum: 0 / 0"
+alignment = 0
+text = "Markt (Kauf 2x / Verkauf 1x)"
 
-[node name="SatisfactionLabel" type="Label" parent="Panel/Scroll/VBox"]
-layout_mode = 2
-text = "Zufriedenheit: 50 %"
-
-[node name="Buttons" type="HBoxContainer" parent="Panel/Scroll/VBox"]
+[node name="Content" type="VBoxContainer" parent="LeftPanel/Scroll/VBox/MarketSection"]
+visible = false
 layout_mode = 2
 
-[node name="SaveButton" type="Button" parent="Panel/Scroll/VBox/Buttons"]
+[node name="MarketBox" type="VBoxContainer" parent="LeftPanel/Scroll/VBox/MarketSection/Content"]
 layout_mode = 2
-text = "Speichern"
 
-[node name="LoadButton" type="Button" parent="Panel/Scroll/VBox/Buttons"]
+[node name="BottomBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+offset_top = -96.0
+
+[node name="HBox" type="HBoxContainer" parent="BottomBar"]
 layout_mode = 2
-text = "Laden"
+theme_override_constants/separation = 16
 
-[node name="MenuButton" type="Button" parent="Panel/Scroll/VBox/Buttons"]
+[node name="InfoBox" type="VBoxContainer" parent="BottomBar/HBox"]
 layout_mode = 2
-text = "Szenarien"
+size_flags_horizontal = 3
 
-[node name="StatusLabel" type="Label" parent="Panel/Scroll/VBox"]
+[node name="ScenarioLabel" type="Label" parent="BottomBar/HBox/InfoBox"]
 layout_mode = 2
 autowrap_mode = 3
 text = ""
+
+[node name="StatusLabel" type="Label" parent="BottomBar/HBox/InfoBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[node name="QuestBox" type="VBoxContainer" parent="BottomBar/HBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(340, 0)
+
+[node name="Buttons" type="VBoxContainer" parent="BottomBar/HBox"]
+layout_mode = 2
+
+[node name="SaveButton" type="Button" parent="BottomBar/HBox/Buttons"]
+layout_mode = 2
+text = "Speichern"
+
+[node name="LoadButton" type="Button" parent="BottomBar/HBox/Buttons"]
+layout_mode = 2
+text = "Laden"
+
+[node name="MenuButton" type="Button" parent="BottomBar/HBox/Buttons"]
+layout_mode = 2
+text = "Szenarien"
 
 [node name="DialoguePanel" type="PanelContainer" parent="."]
 visible = false
@@ -190,10 +275,10 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 420.0
-offset_top = -190.0
+offset_left = 340.0
+offset_top = -300.0
 offset_right = -60.0
-offset_bottom = -20.0
+offset_bottom = -110.0
 grow_horizontal = 2
 grow_vertical = 0
 
@@ -358,28 +443,15 @@ text = ""
 layout_mode = 2
 text = "Weiter"
 
-[node name="FpsLabel" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -140.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = 34.0
-grow_horizontal = 0
-horizontal_alignment = 2
-text = "FPS: –"
-
 [node name="LogPanel" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -390.0
-offset_top = 40.0
+offset_top = 48.0
 offset_right = -10.0
-offset_bottom = 280.0
+offset_bottom = 84.0
 grow_horizontal = 0
 
 [node name="VBox" type="VBoxContainer" parent="LogPanel"]
@@ -395,9 +467,10 @@ text = "— Chronik —"
 
 [node name="LogToggle" type="Button" parent="LogPanel/VBox/Header"]
 layout_mode = 2
-text = "–"
+text = "+"
 
 [node name="LogScroll" type="ScrollContainer" parent="LogPanel/VBox"]
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0

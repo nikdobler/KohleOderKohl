@@ -22,6 +22,10 @@ const MOUNTAIN_SPACING: int = 3
 const AMBIENT_SPEED: float = 8.0
 const AMBIENT_WANDER_RADIUS: float = 24.0
 const AMBIENT_TURN_CHANCE: float = 0.01
+## Visuelle Randlandschaft (M17): so viele Zellen setzt sich die Noise-Welt
+## ueber die spielbare Karte hinaus fort. Gross genug, dass die Kamera-Klammer
+## (Begrenzungsrechteck der Karten-Raute) nie Leere ins Bild laesst.
+const OUTSKIRTS_MARGIN: int = 72
 
 var _map: WorldMap
 var _ground: TileMapLayer
@@ -267,9 +271,42 @@ func _on_world_changed(map: WorldMap) -> void:
 			var decor := map.get_decor(cell)
 			if decor != &"":
 				_set_tile(_decor, cell, "feature_%s" % decor)
+	_spawn_outskirts(map)
 	_update_bounds()
 	_spawn_mountains()
 	_spawn_ambient_life()
+
+## Randlandschaft (M17): dieselbe Noise-Welt laeuft ueber die Kartengrenze
+## hinaus weiter — rein kosmetisch (kein Bau, keine Wege, keine Merkmale),
+## damit nie Kartenrand oder Leere zu sehen ist und die Welt endlos wirkt.
+func _spawn_outskirts(map: WorldMap) -> void:
+	for y in range(-OUTSKIRTS_MARGIN, map.height + OUTSKIRTS_MARGIN):
+		for x in range(-OUTSKIRTS_MARGIN, map.width + OUTSKIRTS_MARGIN):
+			if x >= 0 and y >= 0 and x < map.width and y < map.height:
+				continue  # spielbares Innere ist bereits gefuellt
+			var cell := Vector2i(x, y)
+			var biome := map.peek_biome(cell)
+			if biome == &"water":
+				_set_tile(_ground, cell, "tile_water_%d" % _peek_water_mask(map, cell))
+				continue
+			_set_tile(_ground, cell, "tile_%s" % biome)
+			var decor := map.peek_decor(cell)
+			if decor != &"":
+				_set_tile(_decor, cell, "feature_%s" % decor)
+
+## Wasser-Kantenmaske fuer Randzellen (wie WorldMap.water_edge_mask, aber
+## grenzenlos ueber peek_biome; Fluesse existieren draussen nicht).
+func _peek_water_mask(map: WorldMap, cell: Vector2i) -> int:
+	var mask := 0
+	if _peek_water(map, cell + Vector2i(0, -1)): mask |= 1
+	if _peek_water(map, cell + Vector2i(1, 0)): mask |= 2
+	if _peek_water(map, cell + Vector2i(0, 1)): mask |= 4
+	if _peek_water(map, cell + Vector2i(-1, 0)): mask |= 8
+	return mask
+
+func _peek_water(map: WorldMap, cell: Vector2i) -> bool:
+	return map.peek_biome(cell) == &"water" or map.is_river(cell)
+
 
 ## Setzt grosse Bergkulissen in die Hochlagen (deterministisch, Basis auf der Zelle,
 ## Y-sortiert via _mountain_root). Sprite-Offset hebt die Grafik nach oben, die

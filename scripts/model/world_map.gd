@@ -22,6 +22,7 @@ var _cell_decor: Array = []   # StringName je Zelle: rein dekoratives GrUenzeug 
 var _cell_elevation: Array = []  # float je Zelle: Roh-Rauschwert (fuer Flusslauf)
 var _cell_river: Array = []   # bool je Zelle: Teil eines Flusses (unbegehbar)
 var _passable_biomes: Dictionary = {}  # Biom-ID -> bool (Standard: begehbar)
+var _noise: FastNoiseLite  # bleibt nach generate() erhalten (peek_* ausserhalb der Karte)
 
 ## Flusslauf (§8.3): Anzahl Quellen, Mindesthoehe einer Quelle, Laengenlimit.
 const RIVER_COUNT: int = 2
@@ -39,12 +40,13 @@ func generate(p_seed: int, p_width: int, p_height: int, biome_defs: Dictionary) 
 	_cell_decor.resize(width * height)
 	_cell_elevation.resize(width * height)
 	_cell_river.resize(width * height)
-	var noise := FastNoiseLite.new()
-	noise.seed = p_seed
-	noise.frequency = NOISE_FREQUENCY
+	var _n := FastNoiseLite.new()
+	_n.seed = p_seed
+	_n.frequency = NOISE_FREQUENCY
+	_noise = _n
 	for y in height:
 		for x in width:
-			var elevation := noise.get_noise_2d(x, y)
+			var elevation := _noise.get_noise_2d(x, y)
 			var biome := _pick_biome(elevation)
 			var idx := y * width + x
 			var feature := _roll_feature(x, y, biome)
@@ -60,6 +62,22 @@ func get_biome(cell: Vector2i) -> StringName:
 	if not _in_bounds(cell):
 		return &""
 	return _cell_biomes[cell.y * width + cell.x]
+
+## Biom OHNE Kartengrenze (M17): ausserhalb wird dieselbe Noise-Welt
+## weitergerechnet — fuer die rein visuelle Randlandschaft, damit die Karte
+## endlos wirkt. Kein Spielinhalt: Merkmale/Fluesse gibt es dort nicht.
+func peek_biome(cell: Vector2i) -> StringName:
+	if _in_bounds(cell):
+		return _cell_biomes[cell.y * width + cell.x]
+	if _noise == null:
+		return &""
+	return _pick_biome(_noise.get_noise_2d(cell.x, cell.y))
+
+## Dekor OHNE Kartengrenze (M17): gleicher Wuerfel-Kanal wie im Inneren.
+func peek_decor(cell: Vector2i) -> StringName:
+	if _in_bounds(cell):
+		return get_decor(cell)
+	return _roll_decor(cell.x, cell.y, peek_biome(cell))
 
 ## Ressourcen-Merkmal einer Zelle (&"" = keines/ausserhalb).
 func get_feature(cell: Vector2i) -> StringName:

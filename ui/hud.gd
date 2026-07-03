@@ -18,31 +18,33 @@ const _LOG_COLORS: Dictionary = {
 	"System": Color(0.7, 0.85, 1.0),
 }
 
-@onready var _scenario_label: Label = $Panel/Scroll/VBox/ScenarioLabel
-@onready var _resources_box: VBoxContainer = $Panel/Scroll/VBox/ResourcesBox
-@onready var _buildings_box: VBoxContainer = $Panel/Scroll/VBox/BuildingsBox
-@onready var _build_box: VBoxContainer = $Panel/Scroll/VBox/BuildBox
-@onready var _research_box: VBoxContainer = $Panel/Scroll/VBox/ResearchBox
-@onready var _keep_label: Label = $Panel/Scroll/VBox/KeepLabel
-@onready var _army_label: Label = $Panel/Scroll/VBox/ArmyLabel
-@onready var _recruit_box: VBoxContainer = $Panel/Scroll/VBox/RecruitBox
-@onready var _stance_button: Button = $Panel/Scroll/VBox/MilitaryButtons/StanceButton
-@onready var _ration_label: Label = $Panel/Scroll/VBox/RationRow/RationLabel
-@onready var _work_label: Label = $Panel/Scroll/VBox/WorkRow/WorkLabel
-@onready var _tax_label: Label = $Panel/Scroll/VBox/TaxRow/TaxLabel
-@onready var _productivity_label: Label = $Panel/Scroll/VBox/ProductivityLabel
-@onready var _market_title: Label = $Panel/Scroll/VBox/MarketTitle
-@onready var _market_box: VBoxContainer = $Panel/Scroll/VBox/MarketBox
+@onready var _left_vbox: VBoxContainer = $LeftPanel/Scroll/VBox
+@onready var _scenario_label: Label = $BottomBar/HBox/InfoBox/ScenarioLabel
+@onready var _resources_box: HBoxContainer = $TopBar/HBox/ResourcesBox
+@onready var _buildings_box: VBoxContainer = $LeftPanel/Scroll/VBox/WorkersSection/Content/BuildingsBox
+@onready var _build_box: VBoxContainer = $LeftPanel/Scroll/VBox/BuildSection/Content/BuildBox
+@onready var _research_box: VBoxContainer = $LeftPanel/Scroll/VBox/ResearchSection/Content/ResearchBox
+@onready var _keep_label: Label = $LeftPanel/Scroll/VBox/MilitarySection/Content/KeepLabel
+@onready var _army_label: Label = $LeftPanel/Scroll/VBox/MilitarySection/Content/ArmyLabel
+@onready var _recruit_box: VBoxContainer = $LeftPanel/Scroll/VBox/MilitarySection/Content/RecruitBox
+@onready var _stance_button: Button = $LeftPanel/Scroll/VBox/MilitarySection/Content/MilitaryButtons/StanceButton
+@onready var _policy_content: VBoxContainer = $LeftPanel/Scroll/VBox/PolicySection/Content
+@onready var _ration_label: Label = $LeftPanel/Scroll/VBox/PolicySection/Content/RationRow/RationLabel
+@onready var _work_label: Label = $LeftPanel/Scroll/VBox/PolicySection/Content/WorkRow/WorkLabel
+@onready var _tax_label: Label = $LeftPanel/Scroll/VBox/PolicySection/Content/TaxRow/TaxLabel
+@onready var _productivity_label: Label = $LeftPanel/Scroll/VBox/PolicySection/Content/ProductivityLabel
+@onready var _market_section: VBoxContainer = $LeftPanel/Scroll/VBox/MarketSection
+@onready var _market_box: VBoxContainer = $LeftPanel/Scroll/VBox/MarketSection/Content/MarketBox
 @onready var _game_over_panel: PanelContainer = $GameOverPanel
 @onready var _result_title: Label = $GameOverPanel/VBox/ResultTitle
 @onready var _result_text: Label = $GameOverPanel/VBox/ResultText
-@onready var _housing_label: Label = $Panel/Scroll/VBox/HousingLabel
-@onready var _satisfaction_label: Label = $Panel/Scroll/VBox/SatisfactionLabel
-@onready var _save_button: Button = $Panel/Scroll/VBox/Buttons/SaveButton
-@onready var _load_button: Button = $Panel/Scroll/VBox/Buttons/LoadButton
-@onready var _menu_button: Button = $Panel/Scroll/VBox/Buttons/MenuButton
-@onready var _status_label: Label = $Panel/Scroll/VBox/StatusLabel
-@onready var _fps_label: Label = $FpsLabel
+@onready var _housing_label: Label = $TopBar/HBox/HousingLabel
+@onready var _satisfaction_label: Label = $TopBar/HBox/SatisfactionLabel
+@onready var _save_button: Button = $BottomBar/HBox/Buttons/SaveButton
+@onready var _load_button: Button = $BottomBar/HBox/Buttons/LoadButton
+@onready var _menu_button: Button = $BottomBar/HBox/Buttons/MenuButton
+@onready var _status_label: Label = $BottomBar/HBox/InfoBox/StatusLabel
+@onready var _fps_label: Label = $TopBar/HBox/FpsLabel
 @onready var _dialogue_panel: PanelContainer = $DialoguePanel
 @onready var _dialogue_portrait: TextureRect = $DialoguePanel/HBox/Portrait
 @onready var _dialogue_speaker: Label = $DialoguePanel/HBox/VBox/SpeakerLabel
@@ -52,7 +54,7 @@ const _LOG_COLORS: Dictionary = {
 @onready var _campaign_list: VBoxContainer = $ScenarioMenu/VBox/MenuScroll/MenuVBox/CampaignList
 @onready var _scenario_list: VBoxContainer = $ScenarioMenu/VBox/MenuScroll/MenuVBox/ScenarioList
 @onready var _menu_close: Button = $ScenarioMenu/VBox/CloseButton
-@onready var _quest_box: VBoxContainer = $Panel/Scroll/VBox/QuestBox
+@onready var _quest_box: VBoxContainer = $BottomBar/HBox/QuestBox
 @onready var _story_panel: PanelContainer = $StoryPanel
 @onready var _story_title: Label = $StoryPanel/VBox/StoryTitle
 @onready var _story_text: Label = $StoryPanel/VBox/StoryScroll/StoryText
@@ -75,6 +77,7 @@ func _ready() -> void:
 	_menu_button.pressed.connect(func() -> void: _set_menu_visible(true))
 	_menu_close.pressed.connect(func() -> void: _set_menu_visible(false))
 	_build_scenario_menu()
+	_setup_sections()
 	_connect_policy_buttons()
 	EventBus.combat_state_changed.connect(_on_combat_state_changed)
 	EventBus.combat_event.connect(_flash)
@@ -182,18 +185,33 @@ func _on_story_closed() -> void:
 	else:
 		EventBus.scenario_menu_visible.emit(false)
 
+## Aufklapp-Sektionen des linken Panels (M17): der Kopf-Knopf zeigt/verbirgt
+## den Inhalt; standardmaessig ist alles eingeklappt (nur Kopfzeile sichtbar).
+func _setup_sections() -> void:
+	for section in _left_vbox.get_children():
+		var header: Button = section.get_node("Header")
+		var content: Control = section.get_node("Content")
+		header.set_meta("title", header.text)
+		header.pressed.connect(func() -> void:
+			content.visible = not content.visible
+			_refresh_section_header(header, content))
+		_refresh_section_header(header, content)
+
+func _refresh_section_header(header: Button, content: Control) -> void:
+	header.text = "%s %s" % ["▾" if content.visible else "▸", header.get_meta("title")]
+
 func _connect_policy_buttons() -> void:
-	$Panel/Scroll/VBox/RationRow/RationMinus.pressed.connect(
+	_policy_content.get_node("RationRow/RationMinus").pressed.connect(
 		func() -> void: EventBus.ration_change_requested.emit(-1))
-	$Panel/Scroll/VBox/RationRow/RationPlus.pressed.connect(
+	_policy_content.get_node("RationRow/RationPlus").pressed.connect(
 		func() -> void: EventBus.ration_change_requested.emit(1))
-	$Panel/Scroll/VBox/WorkRow/WorkMinus.pressed.connect(
+	_policy_content.get_node("WorkRow/WorkMinus").pressed.connect(
 		func() -> void: EventBus.work_change_requested.emit(-1))
-	$Panel/Scroll/VBox/WorkRow/WorkPlus.pressed.connect(
+	_policy_content.get_node("WorkRow/WorkPlus").pressed.connect(
 		func() -> void: EventBus.work_change_requested.emit(1))
-	$Panel/Scroll/VBox/TaxRow/TaxMinus.pressed.connect(
+	_policy_content.get_node("TaxRow/TaxMinus").pressed.connect(
 		func() -> void: EventBus.tax_change_requested.emit(-1))
-	$Panel/Scroll/VBox/TaxRow/TaxPlus.pressed.connect(
+	_policy_content.get_node("TaxRow/TaxPlus").pressed.connect(
 		func() -> void: EventBus.tax_change_requested.emit(1))
 
 ## FPS-Anzeige fuer den Performance-Nachweis (F3 spawnt 200 Test-Einheiten).
@@ -472,13 +490,12 @@ func _scroll_log_to_end() -> void:
 func _toggle_log() -> void:
 	_log_scroll.visible = not _log_scroll.visible
 	_log_toggle.text = "–" if _log_scroll.visible else "+"
-	_log_panel.offset_bottom = 280.0 if _log_scroll.visible else 76.0
+	_log_panel.offset_bottom = 288.0 if _log_scroll.visible else 84.0
 
 ## Markt-Sektion (M13): eine Handelszeile je Ware mit Preis
 ## ("+5" kauft zum doppelten, "−5" verkauft zum einfachen Grundpreis).
 func _on_market_available(available: bool) -> void:
-	_market_title.visible = available
-	_market_box.visible = available
+	_market_section.visible = available
 	for child in _market_box.get_children():
 		_market_box.remove_child(child)
 		child.queue_free()

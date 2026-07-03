@@ -24,6 +24,7 @@ const _SUITES: Array[String] = [
 	"res://tests/test_feature_variants.gd",
 	"res://tests/test_mountain_scenery.gd",
 	"res://tests/test_village_life.gd",
+	"res://tests/test_outskirts.gd",
 ]
 
 var _done: bool = false
