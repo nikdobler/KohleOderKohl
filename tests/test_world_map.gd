@@ -17,6 +17,9 @@ func run() -> Array:
 	_test_decor(failures)
 	_test_water(failures)
 	_test_river(failures)
+	_test_water_edge_mask(failures)
+	_test_waterfall(failures)
+	_test_bank(failures)
 	_test_building_slots(failures)
 	_test_roundtrip(failures)
 	return failures
@@ -152,6 +155,7 @@ func _test_river(failures: Array) -> void:
 	var b := _make_map(_SEED)
 	var dirs := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 	var count := 0
+	var mouths := 0  # Flusszellen mit Wasser-Nachbarn (Muendung in den See)
 	for y in _SIZE:
 		for x in _SIZE:
 			var cell := Vector2i(x, y)
@@ -167,8 +171,88 @@ func _test_river(failures: Array) -> void:
 			if a.is_walkable(cell):
 				failures.append("Fluss: %s muss unbegehbar sein" % cell)
 				return
+			for d in dirs:
+				if a.get_biome(cell + d) == &"water":
+					mouths += 1
+					break
 	if count == 0:
 		failures.append("Fluss: kein Flusslauf auf der Karte (erwartet > 0)")
+	if mouths == 0:
+		failures.append("Fluss: keine Muendung in einen See (erwartet >= 1)")
+
+## Autotile-Kantenmaske: jedes Bit spiegelt genau, ob der Iso-Seitennachbar zur
+## Wassergruppe (See/Fluss) gehoert; vollstaendig umschlossen -> Maske 15.
+func _test_water_edge_mask(failures: Array) -> void:
+	var map := _make_map(_SEED)
+	var bit_dir := {1: Vector2i(0, -1), 2: Vector2i(1, 0), 4: Vector2i(0, 1), 8: Vector2i(-1, 0)}
+	var checked := 0
+	for y in _SIZE:
+		for x in _SIZE:
+			var cell := Vector2i(x, y)
+			if map.get_biome(cell) != &"water" and not map.is_river(cell):
+				continue
+			checked += 1
+			var expected := 0
+			for bit in bit_dir:
+				var n: Vector2i = cell + bit_dir[bit]
+				if map.get_biome(n) == &"water" or map.is_river(n):
+					expected |= int(bit)
+			if map.water_edge_mask(cell) != expected:
+				failures.append("Kantenmaske: %s falsch (%d != %d)" % [cell, map.water_edge_mask(cell), expected])
+				return
+	if checked == 0:
+		failures.append("Kantenmaske: keine Wasser-/Flusszellen")
+
+## Wasserfaelle: kommen vor, sind Flusszellen und haben einen steilen Abfall zu
+## einem Wassergruppen-Nachbarn (> WATERFALL_DROP).
+func _test_waterfall(failures: Array) -> void:
+	var map := _make_map(_SEED)
+	var dirs := [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
+	var count := 0
+	for y in _SIZE:
+		for x in _SIZE:
+			var cell := Vector2i(x, y)
+			if not map.is_waterfall(cell):
+				continue
+			count += 1
+			if not map.is_river(cell):
+				failures.append("Wasserfall: %s ist keine Flusszelle" % cell)
+				return
+			var steep := false
+			for d in dirs:
+				var n: Vector2i = cell + d
+				if (map.get_biome(n) == &"water" or map.is_river(n)) \
+						and map.get_elevation(cell) - map.get_elevation(n) > WorldMap.WATERFALL_DROP:
+					steep = true
+			if not steep:
+				failures.append("Wasserfall: %s ohne steilen Abfall" % cell)
+				return
+	if count == 0:
+		failures.append("Wasserfall: keiner auf der Karte (erwartet > 0)")
+
+## Ufer: begehbares Land direkt neben Wasser/Fluss, kommt vor (Flussufer).
+func _test_bank(failures: Array) -> void:
+	var map := _make_map(_SEED)
+	var dirs := [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
+	var count := 0
+	for y in _SIZE:
+		for x in _SIZE:
+			var cell := Vector2i(x, y)
+			if not map.is_bank(cell):
+				continue
+			count += 1
+			if not map.is_walkable(cell):
+				failures.append("Ufer: %s muss begehbar sein" % cell)
+				return
+			var touches_water := false
+			for d in dirs:
+				if map.get_biome(cell + d) == &"water" or map.is_river(cell + d):
+					touches_water = true
+			if not touches_water:
+				failures.append("Ufer: %s ohne Wasser-/Fluss-Nachbar" % cell)
+				return
+	if count == 0:
+		failures.append("Ufer: kein Ufer auf der Karte (erwartet > 0)")
 
 ## Bauplaetze: eindeutig, im Kartenbereich, merkmalfrei, stabiler Praefix.
 func _test_building_slots(failures: Array) -> void:

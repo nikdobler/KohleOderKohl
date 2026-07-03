@@ -1,3 +1,4 @@
 {
-	"rock": ["rock_small", "rock_boulder", "rock_cluster", "rock_mossy"]
+	"rock": ["rock_small", "rock_boulder", "rock_cluster", "rock_mossy"],
+	"tree": ["tree_broadleaf", "tree_pine", "tree_birch"]
 }

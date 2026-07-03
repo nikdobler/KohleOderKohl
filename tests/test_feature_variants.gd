@@ -37,8 +37,8 @@ func _test_variant_is_valid(failures: Array) -> void:
 
 ## Merkmal ohne Tabelleneintrag liefert sich selbst zurueck (unveraendert).
 func _test_passthrough_without_table(failures: Array) -> void:
-	var v := FeatureVariants.pick(&"tree", Vector2i(1, 1), Database.feature_variants, _SEED)
-	if v != &"tree":
+	var v := FeatureVariants.pick(&"nonexistent", Vector2i(1, 1), Database.feature_variants, _SEED)
+	if v != &"nonexistent":
 		failures.append("Variante: Merkmal ohne Tabelle muss unveraendert bleiben (erhielt %s)" % v)
 
 ## Ueber viele Zellen tauchen mehrere Varianten auf (kein konstanter Wert).

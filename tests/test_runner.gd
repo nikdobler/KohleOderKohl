@@ -23,7 +23,9 @@ const _SUITES: Array[String] = [
 	"res://tests/test_settlement_props.gd",
 	"res://tests/test_feature_variants.gd",
 	"res://tests/test_mountain_scenery.gd",
+	"res://tests/test_path_network.gd",
 	"res://tests/test_village_life.gd",
+	"res://tests/test_sprite_anim.gd",
 	"res://tests/test_outskirts.gd",
 ]
 

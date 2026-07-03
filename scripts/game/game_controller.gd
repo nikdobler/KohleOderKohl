@@ -98,7 +98,10 @@ func _setup_combat() -> void:
 		{"cell": player_keep_cell, "hp": int(Database.get_building_def(&"keep").get("hp", 100))},
 		{"cell": enemy_keep_cell, "hp": int(enemy_cfg.get("keep_hp", 100))},
 		enemy_cfg, randi())
-	_combat.setup_grid(_world.width, _world.height, _world.impassable_cells())
+	# Wachsendes Gitter (M-Unendlich): startet ueber beiden Bergfrieden und
+	# folgt danach dem Geschehen — die Welt hat keinen Rand mehr.
+	_combat.setup_grid_map(_world,
+		Rect2i(player_keep_cell, Vector2i.ONE).expand(enemy_keep_cell))
 	_register_structures()
 
 ## Traegt alle Festungswerke der Wirtschaft (hp > 0, ausser Bergfried) als
@@ -657,9 +660,10 @@ func _on_load() -> void:
 	if combat_data.is_empty():
 		_setup_combat()  # aeltere Spielstaende ohne Kampf: frisch aufbauen
 	else:
-		# Gitter zuerst auf die (regenerierte) Welt setzen, dann laedt
-		# from_dict die Hindernisse hinein.
-		_combat.setup_grid(_world.width, _world.height, _world.impassable_cells())
+		# Wachsendes Gitter zuerst auf die (regenerierte) Welt setzen; from_dict
+		# laedt die Hindernisse und spannt die Region ueber alles Geladene.
+		var start := Rect2i(_world.building_slots(1)[0], Vector2i.ONE)
+		_combat.setup_grid_map(_world, start)
 		_combat.from_dict(combat_data, Database.units, enemy_cfg)
 	_dialogue.from_dict(GameState.data.get("dialogues", {}))
 	_scenario.from_dict(GameState.data.get("scenario", {}))

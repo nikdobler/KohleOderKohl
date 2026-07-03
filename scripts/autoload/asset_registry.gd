@@ -17,7 +17,12 @@ const TILE_SIZE: Vector2i = Vector2i(64, 32)
 ## eine deterministische Farbe aus ihrem Namens-Hash.
 const _PLACEHOLDER_COLORS: Dictionary = {
 	&"feature_tree": Color("#3e6b34"),
+	&"feature_tree_broadleaf": Color("#3e6b34"),
+	&"feature_tree_pine": Color("#2f5a30"),
+	&"feature_tree_birch": Color("#5a7a40"),
 	&"feature_rock": Color("#736d64"),
+	&"feature_campfire": Color("#d0722a"),
+	&"feature_signpost": Color("#7a5a34"),
 	&"feature_flowers": Color("#d9678f"),
 	&"feature_grass_tuft": Color("#5f9440"),
 	&"feature_bush": Color("#3f6b30"),
@@ -60,6 +65,9 @@ const _PLACEHOLDER_COLORS: Dictionary = {
 	&"resource_beer": Color("#b9822f"),
 	&"npc_baumeister": Color("#9a7b52"),
 	&"tile_farmland": Color("#b98c4a"),
+	&"tile_sand": Color("#cdb37a"),
+	&"tile_dirt": Color("#7a5f42"),
+	&"feature_rock_wet": Color("#6a6d68"),
 	&"tile_water_deep": Color("#2f6b8f"),
 	&"tile_water_shallow": Color("#4f97b8"),
 	&"tile_river": Color("#3f80a8"),
@@ -72,12 +80,41 @@ const _PLACEHOLDER_COLORS: Dictionary = {
 	&"animal_bird": Color("#45484d"),
 	&"animal_frog": Color("#5f8a3e"),
 	&"animal_butterfly": Color("#d98cc0"),
+	&"animal_fish": Color("#7f9fb5"),
+	&"animal_pig": Color("#c98f96"),
 	&"animal_cow": Color("#8a6b4f"),
 	&"animal_sheep": Color("#dcd6cc"),
 	&"animal_chicken": Color("#cf9f5a"),
 }
 
 var _cache: Dictionary = {}  # StringName -> Texture2D
+var _sheet_cache: Dictionary = {}  # StringName -> {texture, hframes}
+
+## Liefert das Laufband-Sheet eines benannten ZUSTANDS (und optional einer Iso-Richtung)
+## ODER das Standbild (§Animation). Aufloesung, jeweils "res://assets/…png":
+##   1. "<id>_<state>_<facing>.png"  (gerichtet: facing = "down"/"up")
+##   2. "<id>_<state>.png"           (nicht-gerichtet, per Spiegelung links/rechts)
+##   3. Standbild get_texture(id) mit hframes 1.
+## Rueckgabe { "texture", "hframes" } (hframes = Breite/Hoehe des Sheets). So kann jedes
+## Asset je Zustand UND Richtung einzeln aufgeruestet werden, ohne Spielcode zu aendern.
+func sprite_sheet(id: StringName, state: StringName = &"walk", facing: StringName = &"") -> Dictionary:
+	var key := "%s_%s_%s" % [id, state, facing]
+	if _sheet_cache.has(key):
+		return _sheet_cache[key]
+	var result: Dictionary = {}
+	var candidates: Array = []
+	if facing != &"":
+		candidates.append("res://assets/%s_%s_%s.png" % [id, state, facing])
+	candidates.append("res://assets/%s_%s.png" % [id, state])
+	for path in candidates:
+		if ResourceLoader.exists(path):
+			var tex: Texture2D = load(path)
+			result = {"texture": tex, "hframes": SpriteAnim.frames_in_sheet(tex.get_width(), tex.get_height())}
+			break
+	if result.is_empty():
+		result = {"texture": get_texture(id), "hframes": 1}
+	_sheet_cache[key] = result
+	return result
 
 ## Liefert die Textur zu einer Asset-ID (Datei vor Platzhalter, gecacht).
 func get_texture(id: StringName) -> Texture2D:
@@ -95,6 +132,12 @@ func get_texture(id: StringName) -> Texture2D:
 ## Erzeugt den Platzhalter passend zum ID-Praefix.
 func _make_placeholder(id: StringName) -> Texture2D:
 	var text := String(id)
+	if text.begins_with("tile_water_") or text.begins_with("tile_river_"):
+		# Autotile: Farbe nach Art/Maske, Uferkanten mit Schaumrand (§8.3).
+		return _make_water_tile(text)
+	if text.begins_with("tile_path_") or text.begins_with("tile_bridge_"):
+		# Weg/Bruecke: Streifen von der Mitte zu jeder verbundenen Nachbarkante (§8.4/§8.3).
+		return _make_path_tile(text)
 	if text.begins_with("tile_"):
 		# Explizite Kachel-Farbe (z. B. Acker, kein Biom) geht vor der Biom-Farbe.
 		if _PLACEHOLDER_COLORS.has(id):
@@ -103,6 +146,8 @@ func _make_placeholder(id: StringName) -> Texture2D:
 	if text.begins_with("feature_mountain"):
 		# Grosse Kulisse: mehrkacheliges Dreieck, ggf. mit Schneekappe.
 		return _make_mountain(_color_for(id), text.contains("snow"))
+	if text == "feature_waterfall":
+		return _make_waterfall()
 	if text.begins_with("feature_"):
 		return _make_dot(_color_for(id), 10)
 	if text.begins_with("unit_"):
@@ -140,6 +185,91 @@ func _make_diamond(color: Color) -> Texture2D:
 				var edge := half_width - dist < 2.0
 				image.set_pixel(x, y, color.darkened(0.25) if edge else color)
 	return ImageTexture.create_from_image(image)
+
+## Autotile-Wasserkachel aus der ID "tile_water_<maske>" / "tile_river_<maske>":
+## Farbe nach Art (Fluss / Tiefwasser bei Maske 15 / sonst Flachwasser), Uferkanten
+## per Maske mit Schaumrand. Echte Kantenpixelart ersetzt spaeter tile_water_<n>.png.
+func _make_water_tile(text: String) -> Texture2D:
+	var is_river := text.begins_with("tile_river_")
+	var parts := text.split("_")
+	var mask := int(parts[parts.size() - 1])
+	var color: Color
+	if is_river:
+		color = Color("#3f80a8")
+	elif mask == 15:
+		color = Color("#2f6b8f")  # ringsum Wasser -> tief
+	else:
+		color = Color("#4f97b8")  # Uferzelle -> flach
+	return _make_edge_diamond(color, mask)
+
+## Diamant mit Schaumrand auf den Kanten, deren Nachbar KEIN Wasser ist (Maske-Bit
+## geloescht). Innenkanten (Bit gesetzt) bleiben nahtlos.
+func _make_edge_diamond(color: Color, mask: int) -> Texture2D:
+	var image := Image.create(TILE_SIZE.x, TILE_SIZE.y, false, Image.FORMAT_RGBA8)
+	var half_h := TILE_SIZE.y / 2.0
+	var foam := color.lightened(0.28)
+	for y in TILE_SIZE.y:
+		var dy := y - half_h + 0.5
+		var row_ratio := 1.0 - absf(dy) / half_h
+		var half_width := row_ratio * TILE_SIZE.x / 2.0
+		for x in TILE_SIZE.x:
+			var dx := x - TILE_SIZE.x / 2.0 + 0.5
+			var dist := absf(dx)
+			if dist > half_width:
+				continue
+			var land := (mask & _quadrant_bit(dx, dy)) == 0
+			var near_edge := half_width - dist < 3.0 or row_ratio < 0.16
+			image.set_pixel(x, y, foam if (land and near_edge) else color)
+	return ImageTexture.create_from_image(image)
+
+## Weg-Kachel aus "tile_path_<maske>": Erd-Streifen von der Mitte zu jeder Kante,
+## deren Bit gesetzt ist (verbundener Nachbar); Rest transparent -> Biom scheint durch.
+func _make_path_tile(text: String) -> Texture2D:
+	var parts := text.split("_")
+	var mask := int(parts[parts.size() - 1])
+	var image := Image.create(TILE_SIZE.x, TILE_SIZE.y, false, Image.FORMAT_RGBA8)
+	var center := Vector2(TILE_SIZE.x / 2.0, TILE_SIZE.y / 2.0)
+	var half_h := TILE_SIZE.y / 2.0
+	# Bruecke = helleres Plankenholz, Weg = Erdbraun.
+	var dirt := Color("#b58a4f") if text.begins_with("tile_bridge_") else Color("#9c7a4a")
+	var edge := {
+		1: center + Vector2(16, -8), 2: center + Vector2(16, 8),
+		4: center + Vector2(-16, 8), 8: center + Vector2(-16, -8),
+	}
+	for y in TILE_SIZE.y:
+		for x in TILE_SIZE.x:
+			var p := Vector2(x + 0.5, y + 0.5)
+			if absf(p.x - center.x) / (TILE_SIZE.x / 2.0) + absf(p.y - center.y) / half_h > 1.0:
+				continue
+			var on := p.distance_to(center) < 4.0  # zentraler Knoten
+			for bit in edge:
+				if (mask & bit) != 0 and p.distance_to(Geometry2D.get_closest_point_to_segment(p, center, edge[bit])) < 3.5:
+					on = true
+					break
+			if on:
+				image.set_pixel(x, y, dirt)
+	return ImageTexture.create_from_image(image)
+
+## Wasserfall: heller, leicht texturierter senkrechter Sturz in der Kachelmitte.
+func _make_waterfall() -> Texture2D:
+	var image := Image.create(TILE_SIZE.x, TILE_SIZE.y, false, Image.FORMAT_RGBA8)
+	var cx := TILE_SIZE.x / 2.0
+	var foam := Color("#dbeef5")
+	for y in TILE_SIZE.y:
+		for x in TILE_SIZE.x:
+			if absf(x - cx + 0.5) < 4.0:
+				image.set_pixel(x, y, foam if int(x + y) % 3 != 0 else foam.darkened(0.18))
+	return ImageTexture.create_from_image(image)
+
+## Diamant-Quadrant eines Pixels -> Masken-Bit der zugehoerigen Iso-Kante.
+func _quadrant_bit(dx: float, dy: float) -> int:
+	if dx >= 0.0 and dy < 0.0:
+		return 1   # oben-rechts  (Nachbar 0,-1)
+	if dx >= 0.0 and dy >= 0.0:
+		return 2   # unten-rechts (Nachbar 1,0)
+	if dx < 0.0 and dy >= 0.0:
+		return 4   # unten-links  (Nachbar 0,1)
+	return 8       # oben-links   (Nachbar -1,0)
 
 ## Gefuellter Kreis (Merkmale wie Baum/Fels), zentriert auf Kachelgroesse.
 func _make_dot(color: Color, radius: int) -> Texture2D:

@@ -30,9 +30,33 @@ func run() -> Array:
 	_test_tower_stats_roundtrip(failures)
 	_test_ranged_unit_strikes_from_distance(failures)
 	_test_command_move_posts_unit(failures)
+	_test_grid_grows_with_distant_target(failures)
 	_test_remove_obstacle_reopens_path(failures)
 	_test_roundtrip(failures)
 	return failures
+
+## M-Unendlich: das Wegfindungs-Gitter waechst mit — ein Marschziel weit
+## ausserhalb des Startgebiets (auch negative Koordinaten) wird erreicht.
+func _test_grid_grows_with_distant_target(failures: Array) -> void:
+	var map := WorldMap.new()
+	map.generate(99, 24, 24, Database.biomes)
+	var combat := _make_system(100, 100)
+	combat.setup_grid_map(map, Rect2i(0, 0, 12, 12))
+	var start := map.nearest_free_cell(Vector2i(2, 2))
+	var unit := combat.add_unit(&"swordsman", CombatSystem.FACTION_PLAYER,
+		start, CombatSystem.STANCE_GUARD, start)
+	var target := map.nearest_free_cell(Vector2i(60, -40))
+	if not combat.command_move(unit.id, target):
+		failures.append("Unendlich: Marschbefehl muss angenommen werden")
+		return
+	var start_dist := maxi(absi(start.x - target.x), absi(start.y - target.y))
+	for i in 300:
+		combat.tick()
+		if unit.cell == target:
+			break
+	var end_dist := maxi(absi(unit.cell.x - target.x), absi(unit.cell.y - target.y))
+	if end_dist > start_dist - 20:
+		failures.append("Unendlich: Einheit muss deutlich Richtung Fernziel marschieren (%d -> %d)" % [start_dist, end_dist])
 
 ## System ohne Wellen/Verteidiger; Bergfriede an gegebenen Zellen.
 func _make_system(player_hp: int, enemy_hp: int, enemy_cfg: Dictionary = {}) -> CombatSystem:

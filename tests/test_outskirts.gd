@@ -18,7 +18,32 @@ func run() -> Array:
 	_test_inside_passthrough(failures, small)
 	_test_seamless_continuation(failures, small, large)
 	_test_decor_continuation(failures, small, large)
+	_test_infinite_playable(failures, small)
 	return failures
+
+## M-Unendlich: auch weit draussen (inkl. negativer Koordinaten) ist die Welt
+## SPIELBAR definiert — begehbare Zellen existieren, Merkmale gibt es, und
+## Fluesse sind ueber Instanzen hinweg reproduzierbar (Region-Cache).
+func _test_infinite_playable(failures: Array, small: WorldMap) -> void:
+	var walkable_found := false
+	var feature_found := false
+	for y in range(-230, -200):
+		for x in range(200, 230):
+			var cell := Vector2i(x, y)
+			walkable_found = walkable_found or small.is_walkable(cell)
+			feature_found = feature_found or small.get_feature(cell) != &""
+	if not walkable_found:
+		failures.append("Unendlich: keine begehbare Zelle im Fernbereich")
+	if not feature_found:
+		failures.append("Unendlich: keine Merkmale im Fernbereich")
+	var other := WorldMap.new()
+	other.generate(_SEED, _SMALL, _SMALL, Database.biomes)
+	for y in range(-230, -200):
+		for x in range(200, 230):
+			var cell := Vector2i(x, y)
+			if small.is_river(cell) != other.is_river(cell):
+				failures.append("Unendlich: Fluss bei %s nicht reproduzierbar" % cell)
+				return
 
 ## Innerhalb der Karte ist peek_biome identisch mit get_biome.
 func _test_inside_passthrough(failures: Array, small: WorldMap) -> void:

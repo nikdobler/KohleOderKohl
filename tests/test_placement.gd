@@ -110,14 +110,28 @@ func _test_near_rule(failures: Array) -> void:
 	if far_from_tree.x >= 0 and Placement.can_place(woodcutter, far_from_tree, _world, {})["ok"]:
 		failures.append("Umgebung: Holzfaeller ohne Baeume muss scheitern")
 
-## Belegte Zellen und Kartenrand werden abgelehnt.
+## Belegte Zellen werden abgelehnt; AUSSERHALB des Startgebiets darf seit
+## M-Unendlich gebaut werden — dieselben Regeln, kein Kartenrand mehr.
 func _test_occupied_and_bounds(failures: Array) -> void:
 	var house := Database.get_building_def(&"house")
 	var cell := _find_cell(&"grassland", "")
 	if Placement.can_place(house, cell, _world, {cell: true})["ok"]:
 		failures.append("Belegt: besetzte Zelle muss abgelehnt werden")
-	if Placement.can_place(house, Vector2i(-3, 5), _world, {})["ok"]:
-		failures.append("Rand: Zelle ausserhalb muss abgelehnt werden")
+	var far := _far_free_grassland()
+	if far.x == -9999:
+		failures.append("Unendlich: kein freies Grasland ausserhalb gefunden")
+	elif not Placement.can_place(house, far, _world, {})["ok"]:
+		failures.append("Unendlich: freies Grasland ausserhalb muss bebaubar sein")
+
+## Freie Graslandzelle klar ausserhalb des Startgebiets (negative Koordinaten).
+func _far_free_grassland() -> Vector2i:
+	for y in range(-40, -10):
+		for x in range(-40, -10):
+			var cell := Vector2i(x, y)
+			if _world.get_biome(cell) == &"grassland" and _world.get_feature(cell) == &"" \
+					and _world.is_walkable(cell):
+				return cell
+	return Vector2i(-9999, -9999)
 
 ## Gebaeude ohne placement-Block (Bergfried) sind nicht baubar.
 func _test_not_buildable_without_placement(failures: Array) -> void:

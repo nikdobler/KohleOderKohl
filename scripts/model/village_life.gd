@@ -143,12 +143,11 @@ func _pick_task(villager: Villager, map: WorldMap) -> Vector2:
 	var pick: Vector2i = candidates[absi(hash("%s:%d" % [villager.id, villager.trips])) % candidates.size()]
 	return Vector2(pick)
 
-## Alle Kartenzellen im Quadrat-Radius um das Zentrum (inkl. Zentrum).
-func _cells_in_radius(center: Vector2i, radius: int, map: WorldMap) -> Array:
+## Alle Zellen im Quadrat-Radius um das Zentrum (inkl. Zentrum) — die Welt
+## ist seit M-Unendlich grenzenlos, es gibt keinen Kartenrand-Filter mehr.
+func _cells_in_radius(center: Vector2i, radius: int, _map: WorldMap) -> Array:
 	var cells: Array = []
 	for dy in range(-radius, radius + 1):
 		for dx in range(-radius, radius + 1):
-			var cell := center + Vector2i(dx, dy)
-			if cell.x >= 0 and cell.y >= 0 and cell.x < map.width and cell.y < map.height:
-				cells.append(cell)
+			cells.append(center + Vector2i(dx, dy))
 	return cells

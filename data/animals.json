@@ -41,6 +41,12 @@
 		"category": "wild",
 		"habitat": ["valley", "grassland"]
 	},
+	"fish": {
+		"id": "fish",
+		"display_name": "Fisch",
+		"category": "wild",
+		"habitat": ["water"]
+	},
 	"cow": {
 		"id": "cow",
 		"display_name": "Kuh",
@@ -58,5 +64,11 @@
 		"display_name": "Huhn",
 		"category": "livestock",
 		"near_building": "house"
+	},
+	"pig": {
+		"id": "pig",
+		"display_name": "Schwein",
+		"category": "livestock",
+		"near_building": "pig_farm"
 	}
 }

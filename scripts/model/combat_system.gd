@@ -83,23 +83,67 @@ var _wave_size: int = 0
 var _next_id: int = 1
 var _rng := RandomNumberGenerator.new()
 
-## A*-Wegfindung (M9): getrennte Gitter je Fraktion, weil Tore nur fuer
-## Spieler-Einheiten passierbar sind. Ohne setup_grid (z. B. in aelteren
+## A*-Wegfindung (M9/M-Unendlich): getrennte Gitter je Fraktion, weil Tore nur
+## fuer Spieler-Einheiten passierbar sind. Ohne setup_grid (z. B. in aelteren
 ## Tests) gilt das Legacy-Verhalten: gerade Linie, eigene Werke durchlaessig.
+## Mit setup_grid_map WAECHST die Gitter-Region mit dem Geschehen (unendliche
+## Karte): verlaesst etwas die Region, wird sie vergroessert neu aufgebaut und
+## das Gelaende direkt von der Karte abgefragt.
 var _grid_player: AStarGrid2D
 var _grid_enemy: AStarGrid2D
+var _terrain_map: WorldMap  # Gelaende-Quelle der wachsenden Region (null = festes Gitter)
+var _grid_region := Rect2i()
 
-## Baut die Wegfindungs-Gitter auf; [param blocked_cells] sind unbegehbare
+## Reserve rund ums Geschehen beim (Neu-)Aufbau der Gitter-Region.
+const GRID_MARGIN: int = 16
+
+## Festes Gitter (Kompatibilitaet): [param blocked_cells] sind unbegehbare
 ## Gelaendezellen (z. B. Sumpf), die fuer beide Seiten gelten.
 func setup_grid(width: int, height: int, blocked_cells: Array) -> void:
-	_grid_player = _make_grid(width, height, blocked_cells)
-	_grid_enemy = _make_grid(width, height, blocked_cells)
+	_terrain_map = null
+	_grid_region = Rect2i(0, 0, width, height)
+	_grid_player = _make_grid(_grid_region, blocked_cells)
+	_grid_enemy = _make_grid(_grid_region, blocked_cells)
 	for cell in obstacles:
 		_set_obstacle_solid(cell)
 
-func _make_grid(width: int, height: int, blocked_cells: Array) -> AStarGrid2D:
+## Wachsendes Gitter (M-Unendlich): Gelaende kommt aus der Karte, die Region
+## startet um [param focus] und waechst bei Bedarf mit.
+func setup_grid_map(map: WorldMap, focus: Rect2i) -> void:
+	_terrain_map = map
+	_rebuild_grids(focus.grow(GRID_MARGIN))
+
+## Vergroessert die Region, falls Zellen ausserhalb liegen (und baut neu auf).
+func ensure_grid_covers(cells: Array) -> void:
+	if _terrain_map == null or _grid_player == null:
+		return
+	var region := _grid_region
+	var grew := false
+	for cell in cells:
+		if not region.has_point(cell):
+			region = region.expand(cell)
+			grew = true
+	if grew:
+		_rebuild_grids(region.grow(GRID_MARGIN))
+
+## Baut beide Gitter fuer die Region neu: Gelaende-Solids von der Karte,
+## danach die Hindernisse (Tore bleiben fuer Spieler frei).
+func _rebuild_grids(region: Rect2i) -> void:
+	_grid_region = region
+	var blocked: Array = []
+	for y in range(region.position.y, region.end.y):
+		for x in range(region.position.x, region.end.x):
+			var cell := Vector2i(x, y)
+			if not _terrain_map.is_walkable(cell):
+				blocked.append(cell)
+	_grid_player = _make_grid(region, blocked)
+	_grid_enemy = _make_grid(region, blocked)
+	for cell in obstacles:
+		_set_obstacle_solid(cell)
+
+func _make_grid(region: Rect2i, blocked_cells: Array) -> AStarGrid2D:
 	var grid := AStarGrid2D.new()
-	grid.region = Rect2i(0, 0, width, height)
+	grid.region = region
 	# Kein Diagonalschritt an Hindernissen vorbei -> kein "Eckenschlupf".
 	grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
 	grid.update()
@@ -111,15 +155,17 @@ func _grid_for(faction: StringName) -> AStarGrid2D:
 	return _grid_enemy if faction == FACTION_ENEMY else _grid_player
 
 ## Traegt ein Hindernis in die Gitter ein (Tore bleiben fuer Spieler frei).
+## Zellen ausserhalb der Region (nur bei festen Legacy-Gittern moeglich)
+## werden still uebersprungen — dort gilt ohnehin der Fallback.
 func _set_obstacle_solid(cell: Vector2i) -> void:
-	if _grid_enemy == null:
+	if _grid_enemy == null or not _grid_enemy.is_in_boundsv(cell):
 		return
 	_grid_enemy.set_point_solid(cell, true)
 	if not obstacles[cell].get("passable", false):
 		_grid_player.set_point_solid(cell, true)
 
 func _clear_obstacle_solid(cell: Vector2i) -> void:
-	if _grid_enemy == null:
+	if _grid_enemy == null or not _grid_enemy.is_in_boundsv(cell):
 		return
 	_grid_enemy.set_point_solid(cell, false)
 	_grid_player.set_point_solid(cell, false)
@@ -182,6 +228,7 @@ func add_obstacle(cell: Vector2i, def_id: StringName, hp: int, player_passable: 
 		attack: int = 0, shot_range: int = 0) -> void:
 	obstacles[cell] = {"def_id": def_id, "hp": hp, "max_hp": hp,
 		"passable": player_passable, "attack": attack, "range": shot_range}
+	ensure_grid_covers([cell])  # Werke ausserhalb der Region lassen sie wachsen
 	_set_obstacle_solid(cell)
 
 ## Ruestet ein bestehendes Werk mit Fernkampf nach (FE-Freischaltung).
@@ -202,6 +249,7 @@ func remove_obstacle(cell: Vector2i) -> void:
 func command_move(unit_id: int, cell: Vector2i) -> bool:
 	for unit in units:
 		if unit.id == unit_id and unit.faction == FACTION_PLAYER and unit.hp > 0:
+			ensure_grid_covers([cell])  # Marschziele ohne Weltgrenze (M-Unendlich)
 			unit.home = cell
 			unit.stance = STANCE_GUARD
 			return true
@@ -232,6 +280,7 @@ func tick() -> Array:
 	var events: Array = []
 	if _wave_interval > 0 and _wave_size > 0 and tick_count % _wave_interval == 0:
 		_spawn_wave(events)
+	_ensure_grid_covers_action()
 	for unit in units:
 		if unit.hp > 0:
 			_act(unit, events)
@@ -239,6 +288,18 @@ func tick() -> Array:
 	_collect_deaths(events)
 	_check_keeps(events)
 	return events
+
+## Region-Wachstum je Tick (M-Unendlich): alle Einheiten samt Zielen und
+## beide Bergfriede muessen im Gitter liegen — sonst waechst es.
+func _ensure_grid_covers_action() -> void:
+	if _terrain_map == null:
+		return
+	var points: Array = [keeps[FACTION_PLAYER]["cell"], keeps[FACTION_ENEMY]["cell"]]
+	for unit in units:
+		if unit.hp > 0:
+			points.append(unit.cell)
+			points.append(unit.home)
+	ensure_grid_covers(points)
 
 ## Fernkampf der Festungswerke (M10): jeder schiessende Turm feuert einmal
 ## pro Tick auf den naechsten Feind in Reichweite (gleiche Schadensformel
@@ -394,7 +455,8 @@ func snapshot() -> Dictionary:
 	var unit_list: Array = []
 	for unit in units:
 		unit_list.append({"id": unit.id, "type_id": unit.type_id,
-			"faction": unit.faction, "cell": unit.cell, "hp": unit.hp})
+			"faction": unit.faction, "cell": unit.cell, "hp": unit.hp,
+			"attack_range": unit.attack_range})
 	return {
 		"status": status, "stance": player_stance,
 		"units": unit_list, "keeps": keeps.duplicate(true),
@@ -449,6 +511,11 @@ func from_dict(d: Dictionary, unit_defs: Dictionary, enemy_cfg: Dictionary) -> v
 			"passable": bool(entry.get("passable", false)),
 			"attack": int(entry.get("attack", 0)), "range": int(entry.get("range", 0)),
 		}
+	# Erst die Region ueber alles Geladene spannen, dann Solids setzen
+	# (Spielstaende koennen weit ausserhalb des Startgebiets liegen).
+	_ensure_grid_covers_action()
+	ensure_grid_covers(obstacles.keys())
+	for cell in obstacles:
 		_set_obstacle_solid(cell)
 	player_stance = StringName(d.get("player_stance", "guard"))
 	status = StringName(d.get("status", "active"))

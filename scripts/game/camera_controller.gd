@@ -1,11 +1,12 @@
 extends Camera2D
-## CameraController — Karten-Navigation (M4/M17): Scrollen per WASD/Pfeiltasten,
-## Ziehen mit rechter/mittlerer Maustaste oder Trackpad-Wischen; Zoomen mit
-## Mausrad, Trackpad-Pinch oder +/−. Die Klammer ist zoomabhaengig: der
-## sichtbare Ausschnitt bleibt komplett innerhalb der gemeldeten Grenzen,
-## und weiter heraus als "Karte fuellt den Bildschirm" geht es nie —
-## zusammen mit der Randlandschaft der Welt ist so nie Kartenrand zu sehen.
+## CameraController — Karten-Navigation (M4/M17/M-Unendlich): Scrollen per
+## WASD/Pfeiltasten, Ziehen mit rechter/mittlerer Maustaste oder Trackpad-
+## Wischen; Zoomen mit Mausrad, Trackpad-Pinch oder +/−. Die Welt ist seit
+## M-Unendlich grenzenlos — es gibt keine Positions-Klammer mehr; die
+## Welt-Darstellung streamt die Umgebung der Kamera nach. Die gemeldeten
+## "Grenzen" dienen nur noch dem Startblick auf die Siedlung.
 
+const ZOOM_MIN: float = 0.3
 const ZOOM_MAX: float = 6.0
 const ZOOM_STEP: float = 1.05
 const PAN_SPEED: float = 700.0
@@ -15,15 +16,11 @@ const PAN_GESTURE_SPEED: float = 24.0
 ## sonst rast der Trackpad-Zoom durch den ganzen Bereich.
 const MAGNIFY_DAMPING: float = 0.4
 
-var _bounds := Rect2()
-
 func _ready() -> void:
 	EventBus.camera_bounds_changed.connect(_on_bounds_changed)
 
 func _on_bounds_changed(bounds: Rect2) -> void:
-	_bounds = bounds
-	position = bounds.get_center()  # Start: Blick auf die Siedlung (Kartenmitte)
-	_set_zoom_level(zoom.x)  # Zoom-Untergrenze der neuen Karte durchsetzen
+	position = bounds.get_center()  # Start: Blick auf die Siedlung
 
 func _process(delta: float) -> void:
 	# Ueber Input-Actions (project.godot) — damit spaeter umbelegbar (M12).
@@ -31,7 +28,6 @@ func _process(delta: float) -> void:
 	if direction != Vector2.ZERO:
 		# Bei starkem Zoom langsamer schwenken, damit es kontrollierbar bleibt.
 		position += direction.normalized() * PAN_SPEED * delta / zoom.x
-		_clamp_position()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
@@ -44,10 +40,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_zoom_at_mouse(1.0 + (event.factor - 1.0) * MAGNIFY_DAMPING)
 	elif event is InputEventPanGesture:
 		position += event.delta * PAN_GESTURE_SPEED / zoom.x  # Zwei-Finger-Wischen
-		_clamp_position()
 	elif event is InputEventMouseMotion and _is_drag(event):
 		position -= event.relative / zoom.x
-		_clamp_position()
 	elif event is InputEventKey and event.pressed:
 		if event.keycode == KEY_PLUS or event.keycode == KEY_EQUAL:
 			_set_zoom_level(zoom.x * ZOOM_STEP)
@@ -62,28 +56,7 @@ func _zoom_at_mouse(factor: float) -> void:
 	var before := get_global_mouse_position()
 	_set_zoom_level(zoom.x * factor)
 	position += before - get_global_mouse_position()
-	_clamp_position()
 
-## Setzt den Zoom innerhalb [Untergrenze, ZOOM_MAX] und klammert die Position.
 func _set_zoom_level(level: float) -> void:
-	var clamped := clampf(level, _min_zoom(), ZOOM_MAX)
+	var clamped := clampf(level, ZOOM_MIN, ZOOM_MAX)
 	zoom = Vector2(clamped, clamped)
-	_clamp_position()
-
-## Zoom-Untergrenze: der Ausschnitt darf nie groesser werden als die Karte —
-## sonst waere zwangslaeufig Rand zu sehen.
-func _min_zoom() -> float:
-	if _bounds.size.x <= 0.0 or _bounds.size.y <= 0.0:
-		return 0.1
-	var viewport := get_viewport_rect().size
-	return maxf(viewport.x / _bounds.size.x, viewport.y / _bounds.size.y)
-
-## Haelt den SICHTBAREN AUSSCHNITT (nicht nur das Zentrum) in den Grenzen.
-func _clamp_position() -> void:
-	if _bounds.size == Vector2.ZERO:
-		return
-	var half_view := get_viewport_rect().size / (2.0 * zoom.x)
-	var low := _bounds.position + half_view
-	var high := _bounds.end - half_view
-	position.x = _bounds.get_center().x if low.x > high.x else clampf(position.x, low.x, high.x)
-	position.y = _bounds.get_center().y if low.y > high.y else clampf(position.y, low.y, high.y)
