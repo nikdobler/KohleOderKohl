@@ -351,7 +351,38 @@ text = "Weiterspielen"
 layout_mode = 2
 text = "Szenarien"
 
+[node name="TitleScreen" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Center" type="CenterContainer" parent="TitleScreen"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="TitleScreen/Center"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="GameTitle" type="Label" parent="TitleScreen/Center/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+horizontal_alignment = 1
+text = "Krone und Kohl"
+
+[node name="Subtitle" type="Label" parent="TitleScreen/Center/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Ein Lehen im Sumpf. Ein Winter, der bestimmt kommt."
+
+[node name="PlayButton" type="Button" parent="TitleScreen/Center/VBox"]
+layout_mode = 2
+text = "Spielen"
+
 [node name="ScenarioMenu" type="PanelContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

@@ -63,12 +63,15 @@ const _LOG_COLORS: Dictionary = {
 @onready var _log_scroll: ScrollContainer = $LogPanel/VBox/LogScroll
 @onready var _log_list: VBoxContainer = $LogPanel/VBox/LogScroll/LogList
 @onready var _log_toggle: Button = $LogPanel/VBox/Header/LogToggle
+@onready var _title_screen: PanelContainer = $TitleScreen
+@onready var _play_button: Button = $TitleScreen/Center/VBox/PlayButton
 
 var _resource_labels: Dictionary = {}  # StringName -> Label
 var _worker_labels: Dictionary = {}    # StringName -> Label
 var _tech_buttons: Dictionary = {}     # StringName -> Button
 var _combat_over := false
 var _story_opens_menu := false  # nach dem Story-Text zur Kapitelwahl? (M14)
+var _game_started := false  # erst nach der ersten Szenariowahl wird das HUD eingeblendet
 
 func _ready() -> void:
 	_save_button.pressed.connect(func() -> void: EventBus.save_requested.emit())
@@ -110,7 +113,13 @@ func _ready() -> void:
 	EventBus.dialogue_started.connect(_show_dialogue)
 	EventBus.dialogue_node_changed.connect(_show_dialogue)
 	EventBus.dialogue_ended.connect(func() -> void: _dialogue_panel.visible = false)
-	_set_menu_visible.call_deferred(true)  # Spielstart: Szenario waehlen
+	# Spielstart (M17): Titelbildschirm zuerst — die Szenariowahl liegt hinter
+	# dem Spielen-Knopf, das HUD wird erst nach der Wahl eingeblendet.
+	_set_bars_visible(false)
+	_play_button.pressed.connect(func() -> void:
+		_title_screen.visible = false
+		_set_menu_visible(true))
+	EventBus.scenario_menu_visible.emit.call_deferred(true)  # Tick pausiert bis zur Wahl
 
 ## Szenario-Menue (M12): eine Zeile je Szenario aus der Datenbank.
 ## Kampagnen-Kapitel (campaign_only) gehoeren in die Kampagnen-Sektion.
@@ -131,7 +140,18 @@ func _build_scenario_menu() -> void:
 
 func _set_menu_visible(menu_visible: bool) -> void:
 	_scenario_menu.visible = menu_visible
+	# "Weiterspielen" ergibt erst Sinn, wenn ein Spiel laeuft (M17).
+	_menu_close.visible = _game_started
 	EventBus.scenario_menu_visible.emit(menu_visible)
+
+## HUD-Leisten (oben/links/unten/Chronik) zeigen bzw. verbergen; beim ersten
+## Einblenden nach der Szenariowahl weich einblenden (M17).
+func _set_bars_visible(bars_visible: bool) -> void:
+	for bar in [$TopBar, $LeftPanel, $BottomBar, _log_panel]:
+		bar.visible = bars_visible
+		if bars_visible:
+			bar.modulate.a = 0.0
+			bar.create_tween().tween_property(bar, "modulate:a", 1.0, 0.5)
 
 ## Kampagnen-Sektion im Menue (M14): ein Knopf je Kapitel; gesperrte Kapitel
 ## bleiben deaktiviert, abgeschlossene bekommen ein Haekchen.
@@ -221,6 +241,10 @@ func _process(_delta: float) -> void:
 ## Nach Laden/Neustart: alte dynamische Zeilen entfernen — der Controller
 ## sendet direkt danach den vollstaendigen neuen Zustand.
 func _on_game_loaded() -> void:
+	if not _game_started:
+		_game_started = true
+		_title_screen.visible = false
+		_set_bars_visible(true)  # das HUD erscheint erst mit dem ersten Spiel
 	for dict in [_resource_labels, _worker_labels, _tech_buttons]:
 		dict.clear()
 	_game_over_panel.visible = false

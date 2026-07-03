@@ -113,6 +113,9 @@ Eine vollständige `/data/scenarios/*.json`-Datei mit Startbedingungen, Ziel und
 
 **Danach:** Ausbau auf weitere Ressourcen, Technologien, Charaktere, Szenarien und schliesslich die ca. 6-stündige Kampagne — als Content-Erweiterung auf stabilem System, nicht als technisches Ziel innerhalb der Meilensteine.
 
+**M-Unendlich — Unendlich spielbare Karte (geplant, eigener grosser Meilenstein)**
+Die visuell endlose Randlandschaft (M17, `peek_*`-Noise ohne Grenze) wird spielbar: chunk-basierte Streaming-Generierung rund um die Kamera/Siedlung, Bauplätze/Platzierung/Merkmale ohne Kartengrenze, Pathfinding auf wachsendem Gitter (Region-basiert statt festem AStarGrid2D), Flüsse/Biome chunkübergreifend deterministisch, Gegner-Siedlungen und Szenario-Trigger in der Ferne, Speicherformat für besuchte/veränderte Chunks (nur Deltas, Rest regeneriert aus Seed), Performance-Ziel: flüssig bei laufender Nachgenerierung. Voraussetzung: stabile Instanz-IDs für Gebäude und ein save_version-Bump mit Migration.
+
 ## 10 Ziel
 
 Ein fertiges Spiel für Mac und Windows mit detailverliebter 2D-Grafik, vollständig spielbar mit ca. 6 h Spieldauer für die gesamte Kampagne — erreicht über die Meilensteine in Abschnitt 9, nicht durch direkten Sprung ans Endziel.

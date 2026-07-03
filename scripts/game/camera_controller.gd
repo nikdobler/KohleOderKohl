@@ -6,11 +6,14 @@ extends Camera2D
 ## und weiter heraus als "Karte fuellt den Bildschirm" geht es nie —
 ## zusammen mit der Randlandschaft der Welt ist so nie Kartenrand zu sehen.
 
-const ZOOM_MAX: float = 2.5
-const ZOOM_STEP: float = 1.1
+const ZOOM_MAX: float = 6.0
+const ZOOM_STEP: float = 1.05
 const PAN_SPEED: float = 700.0
 ## Trackpad-Wischen (Pan-Geste) liefert kleine Deltas -> verstaerken.
 const PAN_GESTURE_SPEED: float = 24.0
+## Pinch-Gesten daempfen: nur dieser Anteil des rohen Faktors wirkt,
+## sonst rast der Trackpad-Zoom durch den ganzen Bereich.
+const MAGNIFY_DAMPING: float = 0.4
 
 var _bounds := Rect2()
 
@@ -37,7 +40,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_zoom_at_mouse(1.0 / ZOOM_STEP)
 	elif event is InputEventMagnifyGesture:
-		_zoom_at_mouse(event.factor)  # Trackpad-Pinch (macOS)
+		# Trackpad-Pinch (macOS), gedaempft fuer feinfuehliges Zoomen.
+		_zoom_at_mouse(1.0 + (event.factor - 1.0) * MAGNIFY_DAMPING)
 	elif event is InputEventPanGesture:
 		position += event.delta * PAN_GESTURE_SPEED / zoom.x  # Zwei-Finger-Wischen
 		_clamp_position()
