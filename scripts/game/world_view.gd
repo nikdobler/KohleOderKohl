@@ -837,8 +837,10 @@ func _add_sprite(root: Node2D, asset_id: StringName, cell: Vector2i, offset: Vec
 ## Korrekte Boden-Kachel einer Zelle: Fluss/Wasser (Autotile-Maske) vor Sandufer
 ## (Tiefland-Ufer) vor normalem Biom. Auch fuer das Zuruecksetzen von Bauplaetzen.
 func _ground_asset(cell: Vector2i) -> String:
+	if _map.is_lake(cell):
+		return "tile_water_%d" % _map.water_edge_mask(cell)  # See = offene Wasserflaeche
 	if _map.is_river(cell):
-		return "tile_river_%d" % _map.water_edge_mask(cell)
+		return "tile_river_%d" % _map.water_edge_mask(cell)  # Flusskanal (breite Laeufe = verdickt)
 	var biome := _map.get_biome(cell)
 	if biome == &"water":
 		return "tile_water_%d" % _map.water_edge_mask(cell)

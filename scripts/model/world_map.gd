@@ -35,6 +35,10 @@ const NOISE_DETAIL_FREQ: float = 0.090  # Kuestenrauheit
 const HILL_W: float = 0.28
 const RIDGE_W: float = 0.90
 const DETAIL_W: float = 0.05
+## Huegel-Gewicht im FLIESSFELD der Fluesse (kleiner als HILL_W, ohne Detail):
+## der Kontinent-Gradient dominiert -> Baeche pooolen nicht in jeder Huegeldelle,
+## sondern fliessen lang bis zum Meer. Rendering/Biom nutzen weiter get_elevation.
+const FLOW_HILL_W: float = 0.12
 ## Grat-Kanal nur auf der Kontinent-Hochzone freischalten (weiche Maske) ->
 ## Kaemme liegen als zusammenhaengende Wirbelsaeule, nicht verstreut.
 const MASK_LO: float = 0.15
@@ -50,16 +54,26 @@ const HIGH_HI: float = 1.05
 const MOIST_WET: float = 0.12
 const MOIST_DRY: float = -0.30  # Wueste/Heide nur im trockensten Bereich (selten)
 
-## Flusslauf (§8.3): Regionsgroesse des Fluss-Caches, Quellen je Region,
-## Mindesthoehe einer Quelle (auf der neuen h-Skala) und Mindestabstand.
+## Flusssystem (M-Landschaft M2): Gebirgsbaeche verfolgen den Steilst-Abstieg
+## des Hoehenfelds bis ins Meer, bilden Seen in Senken und werden abwaerts
+## breiter. Je RIVER_REGION-Quadrat gecacht.
 const RIVER_REGION: int = 128
-const RIVERS_PER_REGION: int = 24
-const RIVER_SOURCE_MIN: float = 0.65
-const RIVER_SOURCE_SPACING: int = 12
-## Ab diesem Hoehenabfall zum Wassergruppen-Nachbarn gilt eine Flusszelle als
-## Wasserfall. Auf der neuen h-Skala + Interim-Fluss-Code klein gehalten;
-## echte Steilst-Abstieg-Fluesse (M2) erlauben spaeter einen groesseren Wert.
-const WATERFALL_DROP: float = 0.10
+## Maximale Trace-Laenge (Abstiegsschritte + Seezellen). MUSS < RIVER_REGION
+## sein, damit RIVER_HALO = 1 genuegt: ein Fluss verlaesst seine Quell-Region um
+## hoechstens MAX_TRACE Zellen -> nur die 3x3-Nachbarregionen koennen eine in R
+## eintretende Quelle liefern. RIVER_HALO = ceil(MAX_TRACE/RIVER_REGION) — diese
+## Invariante NICHT brechen (sonst uebersehene Fluesse -> nicht reproduzierbar).
+const MAX_TRACE: int = 110
+const RIVER_HALO: int = 1
+const RIVERS_PER_REGION: int = 8      # weniger Quellen, dafuer lange Laeufe
+const RIVER_SOURCE_MIN: float = 0.60  # Quellen nur aus Hochlagen (Kaemme)
+const RIVER_SOURCE_SPACING: int = 20
+const LAKE_MAX: int = 18              # max. geflutete Zellen je abflussloser Senke
+const LAKE_DEPTH: float = 0.05        # Flut-Hub ueber der Pit-Hoehe
+const WIDEN_EVERY: int = 28           # Zellen je Breitenstufe (Bach -> Fluss)
+const MAX_WIDTH: int = 4
+## Ab diesem Hoehenabfall zum Wassergruppen-Nachbarn gilt eine Flusszelle als Wasserfall.
+const WATERFALL_DROP: float = 0.12
 
 var seed_value: int = 0
 var width: int = 0   # Startgebiet (nicht: Weltgrenze)
@@ -72,7 +86,8 @@ var _noise_hill: FastNoiseLite   # rollende Huegel
 var _noise_ridge: FastNoiseLite  # Bergkaemme (ridged)
 var _noise_detail: FastNoiseLite # Kuestenrauheit
 var _noise_moist: FastNoiseLite  # Feuchte
-var _river_regions: Dictionary = {}  # Regions-Koordinate -> {Zelle: true}
+var _river_regions: Dictionary = {}  # Regions-Koordinate -> {Zelle: {width, lake}}
+var _region_sources: Dictionary = {}  # Regions-Koordinate -> [Quell-Weltzellen] (Cache)
 
 ## Initialisiert die Welt. [param biome_defs] ist das rohe JSON-Dictionary aus
 ## biomes.json; die Reihenfolge der Eintraege bestimmt die Noise-Zuordnung.
@@ -83,6 +98,7 @@ func generate(p_seed: int, p_width: int, p_height: int, biome_defs: Dictionary) 
 	height = p_height
 	_biome_defs = _typed_biome_defs(biome_defs)
 	_river_regions.clear()
+	_region_sources.clear()
 	_noise_cont = _make_noise(SEED_CONT, NOISE_CONT_FREQ, false)
 	_noise_hill = _make_noise(SEED_HILL, NOISE_HILL_FREQ, false)
 	_noise_ridge = _make_noise(SEED_RIDGE, NOISE_RIDGE_FREQ, true)
@@ -137,6 +153,17 @@ func get_moisture(cell: Vector2i) -> float:
 		return 0.0
 	return _noise_moist.get_noise_2d(cell.x, cell.y)
 
+## Geglaettetes FLIESSFELD fuer die Fluss-Wegfindung (M2): wie get_elevation,
+## aber mit geringerem Huegel-Gewicht und ohne Kuestendetail -> der Kontinent-
+## Gradient dominiert, sodass Baeche weit bis ins Meer laufen statt in jeder
+## kleinen Delle zu versickern. Berge (Grat) bleiben als Barriere erhalten.
+func _flow_elevation(cell: Vector2i) -> float:
+	var base := _noise_cont.get_noise_2d(cell.x, cell.y)
+	var hills := _noise_hill.get_noise_2d(cell.x, cell.y)
+	var ridge := _noise_ridge.get_noise_2d(cell.x, cell.y)
+	var mask := smoothstep(MASK_LO, MASK_HI, base)
+	return base + FLOW_HILL_W * hills + RIDGE_W * mask * ridge
+
 ## Kompatibilitaets-Aliase (M17): seit M-Unendlich ist die ganze Welt
 ## "peekbar" — get_* und peek_* sind identisch.
 func peek_biome(cell: Vector2i) -> StringName:
@@ -145,12 +172,28 @@ func peek_biome(cell: Vector2i) -> StringName:
 func peek_decor(cell: Vector2i) -> StringName:
 	return get_decor(cell)
 
-## Ist die Zelle Teil eines Flusses? (unbegehbar; Region wird lazy berechnet)
-func is_river(cell: Vector2i) -> bool:
+## Fluss-/Seedaten einer Zelle (oder null): {width:int, lake:bool}. Die Region
+## wird lazy berechnet und gecacht.
+func _river_data(cell: Vector2i) -> Variant:
 	var region := Vector2i(floori(cell.x / float(RIVER_REGION)), floori(cell.y / float(RIVER_REGION)))
 	if not _river_regions.has(region):
 		_river_regions[region] = _compute_rivers(region)
-	return _river_regions[region].has(cell)
+	return _river_regions[region].get(cell)
+
+## Ist die Zelle Teil eines Flusses ODER Sees? (beide unbegehbar, Wassergruppe)
+func is_river(cell: Vector2i) -> bool:
+	return _river_data(cell) != null
+
+## Breitenstufe der Flusszelle (1..MAX_WIDTH; 0 = keine). Fuer variable Renderung.
+func river_width(cell: Vector2i) -> int:
+	var d: Variant = _river_data(cell)
+	return int(d["width"]) if d != null else 0
+
+## Ist die Zelle Teil eines Sees (nicht eines fliessenden Flusses)? Rendert als
+## offene Wasserflaeche statt als Flusskanal.
+func is_lake(cell: Vector2i) -> bool:
+	var d: Variant = _river_data(cell)
+	return d != null and d["lake"]
 
 ## 4-Bit-Kantenmaske fuer Autotiling (§8.3): welche der vier Iso-Seitennachbarn
 ## zur "Wassergruppe" (Wasser ODER Fluss) gehoeren. Gesetztes Bit = Innenkante
@@ -358,65 +401,38 @@ func _weighted_pick(densities: Dictionary, seed_key: String) -> StringName:
 			return key
 	return &""
 
-## Berechnet alle Flusszellen EINER Region (weltfest verankertes Quadrat von
-## RIVER_REGION Kantenlaenge): von den hoechsten (gespreizten) Quellen jeweils
-## dem Wasser-Distanzfeld nach abwaerts bis zum See. Nutzt nur Zellen der
-## eigenen Region -> Ergebnis haengt allein von Seed + Region ab.
+const _DIRS4: Array = [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
+
+## Alle Fluss-/Seezellen EINER Region: von den Quellen der Region UND ihrer
+## RIVER_HALO-Nachbarregionen (Fluesse queren Grenzen) den Steilst-Abstieg
+## verfolgen; nur Zellen der abgefragten Region [param region] behalten.
+## Jeder Quell-Trace ist eine reine Funktion des Hoehenfelds -> das Ergebnis
+## haengt allein von Seed + Region ab (reihenfolge- und kartengroessenunabhaengig).
 func _compute_rivers(region: Vector2i) -> Dictionary:
+	var out: Dictionary = {}
+	for dy in range(-RIVER_HALO, RIVER_HALO + 1):
+		for dx in range(-RIVER_HALO, RIVER_HALO + 1):
+			for source in _sources_for_region(region + Vector2i(dx, dy)):
+				_trace_river(source, region, out)
+	return out
+
+## Quellen einer Region (Cache): hohe Kammzellen (h >= RIVER_SOURCE_MIN),
+## deterministisch nach Hoehe sortiert, mit Mindestabstand ausgeduennt.
+func _sources_for_region(region: Vector2i) -> Array:
+	if _region_sources.has(region):
+		return _region_sources[region]
 	var origin := region * RIVER_REGION
-	var dist := _distance_to_water(origin)
-	if dist.is_empty():
-		return {}  # Region ohne Wasser -> keine Fluesse
-	var rivers: Dictionary = {}
-	for source in _river_sources(origin):
-		_trace_river(source, origin, dist, rivers)
-	return rivers
-
-## Gitterdistanz jeder Regionszelle zum naechsten Wasserbiom (Multi-Source-BFS,
-## 4er-Nachbarschaft, innerhalb der Region). Leer, falls die Region kein Wasser hat.
-func _distance_to_water(origin: Vector2i) -> PackedInt32Array:
-	var dist := PackedInt32Array()
-	dist.resize(RIVER_REGION * RIVER_REGION)
-	for i in dist.size():
-		dist[i] = -1
-	var queue: Array = []
-	for y in RIVER_REGION:
-		for x in RIVER_REGION:
-			if get_biome(origin + Vector2i(x, y)) == &"water":
-				dist[y * RIVER_REGION + x] = 0
-				queue.append(Vector2i(x, y))
-	if queue.is_empty():
-		return PackedInt32Array()
-	var head := 0
-	while head < queue.size():
-		var current: Vector2i = queue[head]
-		head += 1
-		var cd := dist[current.y * RIVER_REGION + current.x]
-		for dir in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]:
-			var n: Vector2i = current + dir
-			if n.x < 0 or n.y < 0 or n.x >= RIVER_REGION or n.y >= RIVER_REGION:
-				continue
-			var ni := n.y * RIVER_REGION + n.x
-			if dist[ni] != -1:
-				continue
-			dist[ni] = cd + 1
-			queue.append(n)
-	return dist
-
-## Bis zu RIVERS_PER_REGION hohe Quellzellen der Region mit Mindestabstand
-## (deterministisch: Hoehe zuerst, Gleichstand -> stabile Index-Ordnung).
-func _river_sources(origin: Vector2i) -> Array:
 	var candidates: Array = []
 	for y in RIVER_REGION:
 		for x in RIVER_REGION:
-			var local := Vector2i(x, y)
-			if get_elevation(origin + local) >= RIVER_SOURCE_MIN:
-				candidates.append(local)
+			var wc := origin + Vector2i(x, y)
+			if get_elevation(wc) >= RIVER_SOURCE_MIN:
+				candidates.append(wc)
 	candidates.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
-		var ea := get_elevation(origin + a)
-		var eb := get_elevation(origin + b)
+		var ea := get_elevation(a)
+		var eb := get_elevation(b)
 		if ea == eb:
-			return (a.y * RIVER_REGION + a.x) < (b.y * RIVER_REGION + b.x)
+			return a.y < b.y if a.y != b.y else a.x < b.x
 		return ea > eb)
 	var sources: Array = []
 	for cell in candidates:
@@ -429,42 +445,107 @@ func _river_sources(origin: Vector2i) -> Array:
 				break
 		if far:
 			sources.append(cell)
+	_region_sources[region] = sources
 	return sources
 
-## Verfolgt einen Fluss von der (regionslokalen) Quelle zum naechsten See: je
-## Schritt zum Nachbarn mit KLEINERER Wasser-Distanz (Gleichstand -> tiefere
-## Zelle). Die Distanz faellt monoton -> schleifenfrei, endet garantiert an
-## Wasser (oder muendet in einen bestehenden Fluss).
-func _trace_river(source: Vector2i, origin: Vector2i, dist: PackedInt32Array, rivers: Dictionary) -> void:
+## Verfolgt einen Fluss von [param source] (Weltzelle) im Steilst-Abstieg des
+## Hoehenfelds: je Schritt zum tiefsten Nachbarn. Endet bei Meer (Muendung),
+## an einer abflusslosen Senke (endorheischer See) oder wenn das Trace-Budget
+## MAX_TRACE erschoepft ist. Abwaerts breiter (Bach -> Fluss). Traegt nur Zellen
+## der Region [param region_r] in [param out] ein (Breite = max ueber Pfade).
+func _trace_river(source: Vector2i, region_r: Vector2i, out: Dictionary) -> void:
 	var cell := source
-	if dist[source.y * RIVER_REGION + source.x] < 0:
-		return
-	for _step in RIVER_REGION * 2:
-		var world_cell := origin + cell
-		if rivers.has(world_cell) and cell != source:
-			return  # in bestehenden Fluss gemuendet
-		if get_biome(world_cell) == &"water":
-			return  # See erreicht (Wasserzelle bleibt Wasser)
-		rivers[world_cell] = true
-		var here_d := dist[cell.y * RIVER_REGION + cell.x]
-		var best := cell
-		var best_d := 1 << 30
-		var best_e: float = INF
-		for dir in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]:
-			var n: Vector2i = cell + dir
-			if n.x < 0 or n.y < 0 or n.x >= RIVER_REGION or n.y >= RIVER_REGION:
+	var prev := source
+	var steps := 0
+	var visited: Dictionary = {}  # eigener Lauf + Seezellen -> nie zurueckfliessen
+	while steps < MAX_TRACE:
+		if get_biome(cell) == &"water":
+			return  # Muendung ins Meer (Wasserzelle selbst bleibt Wasserbiom)
+		if visited.has(cell):
+			return  # Sicherheitsnetz gegen Schleifen
+		visited[cell] = true
+		var w := clampi(1 + steps / WIDEN_EVERY, 1, MAX_WIDTH)
+		_record(out, region_r, cell, w, false)
+		if w >= 2:  # breite Laeufe seitlich verdicken (senkrecht zur Fliessrichtung)
+			var flow := cell - prev
+			var perp := Vector2i(-flow.y, flow.x)
+			for k in range(1, (w - 1) / 2 + 1):
+				_record(out, region_r, cell + perp * k, w, false)
+				_record(out, region_r, cell - perp * k, w, false)
+		# Tiefster Nachbar, der NICHT schon besucht ist (nach einem See fliesst
+		# der Ueberlauf so vom See weg statt zurueck hinein).
+		var low := _lowest_neighbor(cell, visited)
+		if low == cell or _flow_elevation(low) >= _flow_elevation(cell):
+			var lake := _flood_lake(cell, visited)
+			for lc in lake["cells"]:
+				_record(out, region_r, lc, w, true)
+				visited[lc] = true
+			steps += lake["cells"].size()
+			if not lake["has_spill"]:
+				return  # abflusslose Senke -> See ohne Abfluss
+			prev = cell
+			cell = lake["spill"]
+		else:
+			prev = cell
+			cell = low
+		steps += 1
+
+## Tiefster der vier Iso-Seitennachbarn im FLIESSFELD, der noch nicht besucht
+## ist (deterministisch). Gibt die Zelle selbst zurueck, wenn keiner frei ist.
+func _lowest_neighbor(cell: Vector2i, visited: Dictionary) -> Vector2i:
+	var best := cell
+	var best_e: float = INF
+	for dir in _DIRS4:
+		var n: Vector2i = cell + dir
+		if visited.has(n):
+			continue
+		var e := _flow_elevation(n)
+		if e < best_e:
+			best_e = e
+			best = n
+	return best
+
+## Flutet eine Senke ab [param pit] bis LAKE_DEPTH ueber Pit-Hoehe (gedeckelt auf
+## LAKE_MAX, 4er-BFS, deterministisch), ohne bereits besuchte Zellen. Rueckgabe:
+## {cells, has_spill, spill = tiefste unbesuchte Randzelle als Ueberlauf}.
+func _flood_lake(pit: Vector2i, visited: Dictionary) -> Dictionary:
+	var level := _flow_elevation(pit) + LAKE_DEPTH
+	var lake: Dictionary = {pit: true}
+	var queue: Array = [pit]
+	var head := 0
+	var has_spill := false
+	var spill := pit
+	var spill_e: float = INF
+	while head < queue.size():
+		var c: Vector2i = queue[head]
+		head += 1
+		for dir in _DIRS4:
+			var n: Vector2i = c + dir
+			if lake.has(n) or visited.has(n):
 				continue
-			var nd := dist[n.y * RIVER_REGION + n.x]
-			if nd < 0 or nd >= here_d:
-				continue  # nur echt naeher am Wasser (garantiert Fortschritt)
-			var ne := get_elevation(origin + n)
-			if nd < best_d or (nd == best_d and ne < best_e):
-				best_d = nd
-				best_e = ne
-				best = n
-		if best == cell:
-			return  # kein naeherer Nachbar (sollte fuer Nicht-Wasser nie passieren)
-		cell = best
+			var e := _flow_elevation(n)
+			if e <= level and lake.size() < LAKE_MAX:
+				lake[n] = true
+				queue.append(n)
+			elif e > level and e < spill_e:
+				spill_e = e
+				spill = n
+				has_spill = true
+	return {"cells": lake.keys(), "has_spill": has_spill, "spill": spill}
+
+## Traegt eine Fluss-/Seezelle in [param out] ein — aber nur, wenn sie in der
+## abgefragten Region liegt. Breite = Maximum ueber alle Pfade (reihenfolge-
+## unabhaengig); See-Flag ist klebrig.
+func _record(out: Dictionary, region_r: Vector2i, cell: Vector2i, width: int, lake: bool) -> void:
+	if Vector2i(floori(cell.x / float(RIVER_REGION)), floori(cell.y / float(RIVER_REGION))) != region_r:
+		return
+	var existing: Variant = out.get(cell)
+	if existing == null:
+		out[cell] = {"width": width, "lake": lake}
+	else:
+		existing["width"] = maxi(int(existing["width"]), width)
+		if lake:
+			existing["lake"] = true
 
 ## Zellen des quadratischen Rings mit Radius r um center (deterministisch).
 func _ring_cells(center: Vector2i, radius: int) -> Array:
