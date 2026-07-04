@@ -23,6 +23,7 @@ func run() -> Array:
 	_test_luxuries_boost_mood(failures)
 	_test_taxes_and_trade(failures)
 	_test_economy_roundtrip(failures)
+	_test_building_instance_ids(failures)
 	return failures
 
 ## Baut eine Test-Holzfaellerhuette (2 Holz/Tick, max 1 Arbeiter).
@@ -329,3 +330,25 @@ func _test_economy_roundtrip(failures: Array) -> void:
 		failures.append("Roundtrip: Baeckerei nicht korrekt wiederhergestellt")
 	if restored.housing_capacity() != 4:
 		failures.append("Roundtrip: Wohnraum falsch: %d" % restored.housing_capacity())
+
+## Save v2: jedes Gebaeude bekommt eine eindeutige Instanz-ID, get_building_by_id
+## trifft das richtige, und IDs + Zaehler ueberstehen den Roundtrip.
+func _test_building_instance_ids(failures: Array) -> void:
+	var eco := Economy.new()
+	var h1 := _make_house(4)
+	var h2 := _make_house(4)
+	eco.add_building(h1)
+	eco.add_building(h2)
+	if h1.id == 0 or h2.id == 0 or h1.id == h2.id:
+		failures.append("IDs: erwartet zwei eindeutige IDs > 0, erhalten %d/%d" % [h1.id, h2.id])
+	if eco.get_building_by_id(h2.id) != h2:
+		failures.append("IDs: get_building_by_id trifft nicht das richtige Gebaeude")
+	var restored := Economy.new()
+	restored.from_dict(eco.to_dict())
+	if restored.get_building_by_id(h1.id) == null or restored.get_building_by_id(h2.id) == null:
+		failures.append("IDs: Roundtrip verliert Instanz-IDs")
+	# Der geladene Zaehler steht hinter der hoechsten ID -> keine Kollision.
+	var h3 := _make_house(4)
+	restored.add_building(h3)
+	if h3.id == h1.id or h3.id == h2.id:
+		failures.append("IDs: neue Vergabe kollidiert mit geladenen IDs (%d)" % h3.id)

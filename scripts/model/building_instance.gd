@@ -8,6 +8,10 @@ extends RefCounted
 ## der relevanten Werte, damit die [Economy] unabhaengig von der
 ## [Database] laeuft.
 
+## Stabile Instanz-ID (Save v2): eindeutig je platziertes Gebaeude, vergibt die
+## [Economy] beim Hinzufuegen. 0 = noch nicht vergeben (frische Instanz / alter
+## Spielstand). Grundlage fuer Pro-Instanz-Zustand (z. B. Stilvariante).
+var id: int = 0
 var def_id: StringName = &""
 var produces: StringName = &""
 var production_per_tick: int = 0
@@ -70,6 +74,7 @@ func to_dict() -> Dictionary:
 	for key in consumes:
 		consumes_out[String(key)] = int(consumes[key])
 	return {
+		"id": id,
 		"def_id": String(def_id),
 		"produces": String(produces),
 		"production_per_tick": production_per_tick,
@@ -92,6 +97,7 @@ func _factors_out(factors: Dictionary) -> Dictionary:
 ## Stellt eine Instanz aus einem gespeicherten Dictionary wieder her.
 static func from_dict(d: Dictionary) -> BuildingInstance:
 	var b := BuildingInstance.new()
+	b.id = int(d.get("id", 0))
 	b.def_id = StringName(d.get("def_id", ""))
 	b.produces = StringName(d.get("produces", ""))
 	b.production_per_tick = int(d.get("production_per_tick", 0))

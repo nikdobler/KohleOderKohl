@@ -57,17 +57,43 @@ var tax_level: int = 0
 var luxuries: Dictionary = {}
 ## Waren seit der letzten Versorgung Feinde nahe der Siedlung?
 var threatened_since_feeding: bool = false
+## Naechste zu vergebende Gebaeude-Instanz-ID (Save v2). Wie combat_system._next_id.
+var _next_building_id: int = 1
 
-## Fuegt ein Gebaeude zur Simulation hinzu.
+## Fuegt ein Gebaeude zur Simulation hinzu und vergibt ihm eine stabile
+## Instanz-ID, falls es noch keine hat (Save v2).
 func add_building(building: BuildingInstance) -> void:
+	if building.id == 0:
+		building.id = _next_building_id
+		_next_building_id += 1
 	buildings.append(building)
 
 ## Liefert das erste Gebaeude mit der gegebenen Definitions-ID (oder null).
+## Fuer Singletons wie Bergfried/Markt weiterhin ausreichend.
 func get_building(def_id: StringName) -> BuildingInstance:
 	for b in buildings:
 		if b.def_id == def_id:
 			return b
 	return null
+
+## Liefert das Gebaeude mit der Instanz-ID (oder null) — eindeutig, auch bei
+## mehreren Gebaeuden gleicher Sorte (Save v2).
+func get_building_by_id(instance_id: int) -> BuildingInstance:
+	for b in buildings:
+		if b.id == instance_id:
+			return b
+	return null
+
+## Nach dem Laden: Zaehler hinter die hoechste vergebene ID ziehen und
+## fehlende IDs nachvergeben (alte Spielstaende, deren Migration den Weg
+## nicht durchlief). Belt-and-suspenders zur SaveManager-Migration.
+func _ensure_building_ids() -> void:
+	for b in buildings:
+		_next_building_id = maxi(_next_building_id, b.id + 1)
+	for b in buildings:
+		if b.id == 0:
+			b.id = _next_building_id
+			_next_building_id += 1
 
 ## Entfernt das Gebaeude auf einer Zelle (z. B. zerstoerte Mauer).
 ## Rueckgabe: true, wenn eines entfernt wurde.
@@ -289,6 +315,7 @@ func to_dict() -> Dictionary:
 		"satisfaction": satisfaction,
 		"tick_count": tick_count,
 		"season_offset": season_offset,
+		"next_building_id": _next_building_id,
 		"reserved_population": reserved_population,
 		"ration_level": ration_level,
 		"work_policy": work_policy,
@@ -308,6 +335,8 @@ func from_dict(d: Dictionary) -> void:
 	satisfaction = clampi(int(d.get("satisfaction", SATISFACTION_START)), 0, 100)
 	tick_count = int(d.get("tick_count", 0))
 	season_offset = int(d.get("season_offset", 0))
+	_next_building_id = int(d.get("next_building_id", 1))
+	_ensure_building_ids()
 	reserved_population = int(d.get("reserved_population", 0))
 	ration_level = clampi(int(d.get("ration_level", 1)), 0, 2)
 	work_policy = clampi(int(d.get("work_policy", 1)), 0, 2)

@@ -14,6 +14,7 @@ func run() -> Array:
 	_test_numbers_roundtrip_as_float(failures)
 	_test_load_missing_returns_empty(failures)
 	_test_version_is_written(failures)
+	_test_migrate_v1_to_v2(failures)
 	_cleanup()
 	return failures
 
@@ -60,6 +61,29 @@ func _test_version_is_written(failures: Array) -> void:
 	file.close()
 	if typeof(parsed) != TYPE_DICTIONARY or int(parsed.get("save_version", -1)) != SaveManager.SAVE_VERSION:
 		failures.append("Version: save_version fehlt oder falsch")
+
+## v1 -> v2: ein alter Stand ohne Gebaeude-Instanz-IDs bekommt beim Laden
+## fortlaufende IDs (1..N) und einen passenden Zaehler.
+func _test_migrate_v1_to_v2(failures: Array) -> void:
+	var v1_payload := {
+		"save_version": 1,
+		"data": {"economy": {"buildings": [
+			{"def_id": "keep"}, {"def_id": "house"}, {"def_id": "house"},
+		]}},
+	}
+	var file := FileAccess.open(_TEST_PATH, FileAccess.WRITE)
+	file.store_string(JSON.stringify(v1_payload))
+	file.close()
+	var loaded := SaveManager.load_game(_TEST_PATH)
+	var economy: Dictionary = loaded.get("economy", {})
+	var ids: Array = []
+	for b in economy.get("buildings", []):
+		ids.append(int(b.get("id", 0)))
+	if ids != [1, 2, 3]:
+		failures.append("Migration: erwartet IDs [1,2,3], erhalten %s" % str(ids))
+	if int(economy.get("next_building_id", 0)) != 4:
+		failures.append("Migration: next_building_id erwartet 4, erhalten %s"
+			% str(economy.get("next_building_id")))
 
 func _cleanup() -> void:
 	if FileAccess.file_exists(_TEST_PATH):

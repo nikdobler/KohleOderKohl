@@ -748,7 +748,7 @@ func _on_load() -> void:
 func _building_list() -> Array:
 	var entries: Array = []
 	for building in _economy.buildings:
-		entries.append({"def_id": building.def_id, "cell": building.cell})
+		entries.append({"id": building.id, "def_id": building.def_id, "cell": building.cell})
 	return entries
 
 ## Belegschaft je Gebaeude-Instanz fuer das sichtbare Dorfleben (M16).
