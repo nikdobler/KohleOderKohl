@@ -35,6 +35,9 @@ static func met(trigger: Dictionary, state: Dictionary) -> bool:
 				>= int(trigger.get("amount", 0))
 		"scripted":
 			return false  # feuert nie von selbst — nur per force_start (Kampagne, M14)
+		"season":
+			# M-Jahreszeiten: z. B. Winter-Dialoge oder Saison-Events.
+			return String(state.get("season", "")) == String(trigger.get("season", ""))
 		_:
 			push_warning("TriggerEval: unbekannter Bedingungstyp '%s'" % trigger.get("type", ""))
 			return false

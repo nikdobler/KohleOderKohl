@@ -22,6 +22,9 @@ var cell := Vector2i.ZERO
 ## Bruchteil-Uebertrag der Produktion (Produktivitaet skaliert die Ausbeute;
 ## ganze Einheiten gehen ins Lager, der Rest wird hier angespart).
 var production_carry: float = 0.0
+## Saison-Faktoren der Produktion (M-Jahreszeiten): Saison-ID -> Faktor,
+## z. B. {&"winter": 0.0, &"autumn": 1.5}; fehlende Saisons zaehlen als 1.0.
+var seasonal: Dictionary = {}
 
 ## Erzeugt eine Instanz aus einer Gebaeude-Definition (Dictionary aus JSON).
 static func from_def(def: Dictionary) -> BuildingInstance:
@@ -32,7 +35,12 @@ static func from_def(def: Dictionary) -> BuildingInstance:
 	b.consumes = _typed_consumes(def.get("consumes", {}))
 	b.max_workers = int(def.get("max_workers", 0))
 	b.housing_capacity = int(def.get("housing_capacity", 0))
+	b.seasonal = _typed_seasonal(def.get("seasonal", {}))
 	return b
+
+## Produktionsfaktor der Saison (1.0, wenn das Gebaeude saisonunabhaengig ist).
+func season_factor(season: StringName) -> float:
+	return float(seasonal.get(season, 1.0))
 
 ## Setzt die Arbeiterzahl, begrenzt auf [0, max_workers].
 ## Achtung: prueft KEINEN Wohnraum — das ist Regel der [Economy]
@@ -63,7 +71,14 @@ func to_dict() -> Dictionary:
 		"housing_capacity": housing_capacity,
 		"cell": [cell.x, cell.y],
 		"production_carry": production_carry,
+		"seasonal": _seasonal_out(),
 	}
+
+func _seasonal_out() -> Dictionary:
+	var out: Dictionary = {}
+	for key in seasonal:
+		out[String(key)] = float(seasonal[key])
+	return out
 
 ## Stellt eine Instanz aus einem gespeicherten Dictionary wieder her.
 static func from_dict(d: Dictionary) -> BuildingInstance:
@@ -78,6 +93,7 @@ static func from_dict(d: Dictionary) -> BuildingInstance:
 	var cell_data: Array = d.get("cell", [0, 0])
 	b.cell = Vector2i(int(cell_data[0]), int(cell_data[1]))
 	b.production_carry = float(d.get("production_carry", 0.0))
+	b.seasonal = _typed_seasonal(d.get("seasonal", {}))
 	return b
 
 ## JSON liefert String-Schluessel und float-Werte -> nach StringName/int wandeln.
@@ -85,4 +101,10 @@ static func _typed_consumes(raw: Dictionary) -> Dictionary:
 	var typed: Dictionary = {}
 	for key in raw:
 		typed[StringName(key)] = int(raw[key])
+	return typed
+
+static func _typed_seasonal(raw: Dictionary) -> Dictionary:
+	var typed: Dictionary = {}
+	for key in raw:
+		typed[StringName(key)] = float(raw[key])
 	return typed

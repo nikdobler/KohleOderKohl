@@ -178,18 +178,22 @@ func tick() -> Array:
 
 ## Produktion eines Gebaeudes: nur wenn alle Eingaenge gedeckt sind
 ## (keine Teilproduktion), erst verbrauchen, dann erzeugen. Die Ausbeute
-## skaliert mit der Arbeitsleistung; Bruchteile sammeln sich im Uebertrag
-## (bei schlechter Laune wird derselbe Einsatz schlechter verwertet).
+## skaliert mit der Arbeitsleistung UND der Saison (M-Jahreszeiten:
+## Faktor 0 — z. B. Felder im Winter — stoppt das Gebaeude komplett,
+## ohne Eingaenge zu verschwenden); Bruchteile sammeln sich im Uebertrag.
 func _produce(b: BuildingInstance, changed: Array) -> void:
 	if b.workers == 0 or b.produces == &"":
 		return
+	var season_factor := b.season_factor(Calendar.season(tick_count))
+	if season_factor <= 0.0:
+		return  # Saisonpause (Winterruhe): kein Verbrauch, keine Ausbeute
 	for res in b.consumes:
 		if get_stock(res) < b.input_needed(res):
 			return
 	for res in b.consumes:
 		stock[res] = get_stock(res) - b.input_needed(res)
 		_mark_changed(changed, res)
-	b.production_carry += b.production() * productivity()
+	b.production_carry += b.production() * productivity() * season_factor
 	var whole := int(b.production_carry)
 	if whole > 0:
 		b.production_carry -= whole

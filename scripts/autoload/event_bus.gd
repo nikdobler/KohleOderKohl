@@ -71,6 +71,9 @@ signal housing_changed(assigned: int, capacity: int)
 ## Controller -> UI: Arbeiterzufriedenheit (0..100) hat sich geaendert.
 signal satisfaction_changed(value: int)
 
+## Controller -> UI/Welt: neue Jahreszeit (M-Jahreszeiten).
+signal season_changed(season: StringName, display: String)
+
 ## Controller -> UI: Status einer Technologie (locked/available/researched).
 signal tech_state_changed(tech_id: StringName, status: StringName)
 

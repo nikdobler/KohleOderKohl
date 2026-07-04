@@ -36,6 +36,7 @@
 		"display_name": "Weizenfeld",
 		"produces": "wheat",
 		"production_per_tick": 2,
+		"seasonal": { "spring": 1.25, "autumn": 1.5, "winter": 0.0 },
 		"max_workers": 2,
 		"cost": {
 			"wood": 6
@@ -198,6 +199,7 @@
 		"display_name": "Weinberg",
 		"produces": "grapes",
 		"production_per_tick": 2,
+		"seasonal": { "spring": 1.25, "autumn": 1.5, "winter": 0.0 },
 		"max_workers": 2,
 		"cost": {
 			"wood": 8
@@ -342,6 +344,7 @@
 		"display_name": "Schweinezucht",
 		"produces": "pig",
 		"production_per_tick": 1,
+		"seasonal": { "winter": 0.5 },
 		"max_workers": 2,
 		"cost": {
 			"wood": 7
@@ -379,6 +382,7 @@
 		"display_name": "Milchhof",
 		"produces": "milk",
 		"production_per_tick": 2,
+		"seasonal": { "winter": 0.5 },
 		"max_workers": 2,
 		"cost": {
 			"wood": 7
@@ -416,6 +420,7 @@
 		"display_name": "Fischersteg",
 		"produces": "fish",
 		"production_per_tick": 1,
+		"seasonal": { "winter": 0.5 },
 		"max_workers": 2,
 		"cost": {
 			"wood": 8

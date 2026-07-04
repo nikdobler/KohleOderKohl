@@ -45,6 +45,7 @@ const _LOG_COLORS: Dictionary = {
 @onready var _menu_button: Button = $BottomBar/HBox/Buttons/MenuButton
 @onready var _status_label: Label = $BottomBar/HBox/InfoBox/StatusLabel
 @onready var _fps_label: Label = $TopBar/HBox/FpsLabel
+@onready var _season_label: Label = $TopBar/HBox/SeasonLabel
 @onready var _dialogue_panel: PanelContainer = $DialoguePanel
 @onready var _dialogue_portrait: TextureRect = $DialoguePanel/HBox/Portrait
 @onready var _dialogue_speaker: Label = $DialoguePanel/HBox/VBox/SpeakerLabel
@@ -107,6 +108,8 @@ func _ready() -> void:
 	EventBus.research_progress.connect(_on_research_progress)
 	EventBus.housing_changed.connect(_on_housing_changed)
 	EventBus.satisfaction_changed.connect(_on_satisfaction_changed)
+	EventBus.season_changed.connect(
+		func(_season: StringName, display: String) -> void: _season_label.text = display)
 	EventBus.research_failed.connect(_flash)
 	EventBus.game_saved.connect(func() -> void: _flash("Gespeichert."))
 	EventBus.game_loaded.connect(_on_game_loaded)

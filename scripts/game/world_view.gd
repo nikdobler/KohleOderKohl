@@ -50,6 +50,15 @@ const DIE_SINK: float = 14.0
 const HURT_DURATION: float = 0.18
 const HURT_FLASH: Color = Color(2.2, 0.7, 0.7)  # heller Rot-Blitz
 
+## Saison-Toenung der Welt (M-Jahreszeiten): sanfter Farbstich je Saison.
+const SEASON_TINTS: Dictionary = {
+	&"spring": Color(0.97, 1.0, 0.94),
+	&"summer": Color(1.0, 0.98, 0.88),
+	&"autumn": Color(1.0, 0.9, 0.78),
+	&"winter": Color(0.72, 0.78, 1.0),
+}
+const SEASON_TINT_DURATION: float = 2.0  # Uebergangsdauer der Toenung
+
 var _map: WorldMap
 var _ground: TileMapLayer
 var _decor: TileMapLayer  # rein dekoratives Gruenzeug (flach, unter allen Sprites)
@@ -80,6 +89,8 @@ var _build_def_id: StringName = &""  # aktiver Bau-Modus (leer = aus)
 var _demolish_mode := false  # aktiver Abriss-Modus (M11)
 var _ghost: Sprite2D
 var _ghost_cell := Vector2i.ZERO  # Zelle, auf der der Geist steht (= Bau-/Abrissziel)
+var _snow: CPUParticles2D  # Schneefall im Winter (M-Jahreszeiten)
+var _season_tween: Tween  # laufender Toenungs-Uebergang
 var _village := VillageLife.new()  # Bewegungs-Logik der Dorfbewohner (pures Modell)
 var _villager_sprites: Dictionary = {}  # Bewohner-ID -> Sprite2D
 var _anim_time: float = 0.0  # gemeinsame Uhr fuer prozedurale Animationen
@@ -117,6 +128,8 @@ func _ready() -> void:
 	EventBus.build_mode_selected.connect(_enter_build_mode)
 	EventBus.demolish_mode_selected.connect(_enter_demolish_mode)
 	EventBus.build_preview_result.connect(_on_preview_result)
+	EventBus.season_changed.connect(_on_season_changed)
+	_setup_snow()
 
 ## Pfeil-Animation (M10): kurze, ausblendende Linie je Turmschuss.
 func _on_tower_shots(shots: Array) -> void:
@@ -256,6 +269,45 @@ func _on_preview_result(cell: Vector2i, ok: bool) -> void:
 		return  # veraltete Antwort
 	_ghost.modulate = Color(0.5, 1.0, 0.5, 0.7) if ok else Color(1.0, 0.35, 0.35, 0.7)
 
+## Schneefall (M-Jahreszeiten): Partikel-Emitter, der der Kamera folgt und
+## dessen Spawn-Rechteck die aktuelle Sicht deckt — so schneit es unabhaengig
+## von Zoom und Position, ohne die ganze (grenzenlose) Welt zu beschneien.
+func _setup_snow() -> void:
+	_snow = CPUParticles2D.new()
+	_snow.emitting = false
+	_snow.amount = 260
+	_snow.lifetime = 5.0
+	_snow.preprocess = 5.0  # beim Winterstart/-laden ist der Himmel sofort voll
+	_snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	_snow.direction = Vector2(0.2, 1.0)
+	_snow.gravity = Vector2(8, 42)
+	_snow.initial_velocity_min = 6.0
+	_snow.initial_velocity_max = 18.0
+	_snow.scale_amount_min = 1.5
+	_snow.scale_amount_max = 3.0
+	_snow.color = Color(1, 1, 1, 0.85)
+	_snow.z_index = 3950  # ueber der Welt, unter dem Bau-Geist
+	add_child(_snow)
+
+## Saisonwechsel (M-Jahreszeiten): Welt sanft toenen, im Winter schneit es.
+func _on_season_changed(season: StringName, _display: String) -> void:
+	var tint: Color = SEASON_TINTS.get(season, Color.WHITE)
+	if _season_tween != null and _season_tween.is_valid():
+		_season_tween.kill()
+	_season_tween = create_tween()
+	_season_tween.tween_property(self, "modulate", tint, SEASON_TINT_DURATION)
+	_snow.emitting = season == &"winter"
+
+## Schnee an der Kamera halten und das Spawn-Rechteck an die Sicht anpassen.
+func _update_snow() -> void:
+	if not _snow.emitting:
+		return
+	var cam := get_viewport().get_camera_2d()
+	if cam == null:
+		return
+	_snow.position = cam.get_screen_center_position()
+	_snow.emission_rect_extents = get_viewport_rect().size / (2.0 * cam.zoom) + Vector2(80, 80)
+
 func _process(delta: float) -> void:
 	_anim_time += delta
 	_move_perf_units(delta)
@@ -263,6 +315,7 @@ func _process(delta: float) -> void:
 	_move_villagers(delta)
 	_glide_combat_units(delta)
 	_update_dying(delta)
+	_update_snow()
 	_follow_mouse_in_build_mode()
 	_stream_accum += delta
 	if _stream_accum >= STREAM_INTERVAL:
