@@ -6,7 +6,9 @@ extends RefCounted
 ## welche vorkommen. Nutzt eine echte Karte und Database.biomes.
 
 const _SEED: int = 1234
-const _SIZE: int = 48
+## Seit M-Landschaft liegen Gebirge als Ketten verteilt (nicht mehr am Ursprung);
+## backdrops scannt [0,width) -> grosses Gebiet, damit eine Kette erfasst wird.
+const _SIZE: int = 256
 const _DENSITY: float = 0.25
 const _SPACING: int = 3
 

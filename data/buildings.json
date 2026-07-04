@@ -22,7 +22,9 @@
 			"biomes": [
 				"grassland",
 				"valley",
-				"hills"
+				"hills",
+				"forest",
+				"heath"
 			],
 			"near": {
 				"feature": "tree",
@@ -84,7 +86,10 @@
 		"placement": {
 			"biomes": [
 				"grassland",
-				"hills"
+				"hills",
+				"forest",
+				"heath",
+				"beach"
 			]
 		},
 		"icon": "building_house",

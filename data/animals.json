@@ -3,31 +3,31 @@
 		"id": "deer",
 		"display_name": "Reh",
 		"category": "wild",
-		"habitat": ["valley", "grassland", "hills"]
+		"habitat": ["valley", "grassland", "hills", "forest", "heath"]
 	},
 	"rabbit": {
 		"id": "rabbit",
 		"display_name": "Hase",
 		"category": "wild",
-		"habitat": ["valley", "grassland"]
+		"habitat": ["valley", "grassland", "heath"]
 	},
 	"fox": {
 		"id": "fox",
 		"display_name": "Fuchs",
 		"category": "wild",
-		"habitat": ["grassland", "hills"]
+		"habitat": ["grassland", "hills", "forest", "heath"]
 	},
 	"boar": {
 		"id": "boar",
 		"display_name": "Wildschwein",
 		"category": "wild",
-		"habitat": ["hills", "highlands"]
+		"habitat": ["hills", "highlands", "forest"]
 	},
 	"bird": {
 		"id": "bird",
 		"display_name": "Vogel",
 		"category": "wild",
-		"habitat": ["valley", "grassland", "hills", "highlands"]
+		"habitat": ["valley", "grassland", "hills", "highlands", "forest", "heath", "beach"]
 	},
 	"frog": {
 		"id": "frog",
@@ -39,7 +39,7 @@
 		"id": "butterfly",
 		"display_name": "Schmetterling",
 		"category": "wild",
-		"habitat": ["valley", "grassland"]
+		"habitat": ["valley", "grassland", "heath"]
 	},
 	"fish": {
 		"id": "fish",

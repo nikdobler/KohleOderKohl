@@ -7,6 +7,9 @@ extends RefCounted
 
 const _SEED: int = 1234
 const _SIZE: int = 48
+## Seit M-Landschaft haben Biome Kontinent-Groesse -> in einem grossen
+## zentrierten Fenster suchen, nicht mehr nur im Startgebiet.
+const _SAMPLE: int = 320
 
 var _world: WorldMap
 
@@ -28,8 +31,9 @@ func _test_near_biome_rule(failures: Array) -> void:
 	var hut := Database.get_building_def(&"fishing_hut")
 	var near_water := Vector2i(-1, -1)
 	var far_from_water := Vector2i(-1, -1)
-	for y in _SIZE:
-		for x in _SIZE:
+	var h := _SAMPLE / 2
+	for y in range(-h, h):
+		for x in range(-h, h):
 			var cell := Vector2i(x, y)
 			if _world.get_biome(cell) != &"grassland" or _world.get_feature(cell) != &"" \
 					or not _world.is_walkable(cell):
@@ -48,8 +52,9 @@ func _test_near_biome_rule(failures: Array) -> void:
 
 ## Sucht eine Zelle mit Biom/Merkmal (Merkmal "" = frei, "*" = egal).
 func _find_cell(biome: StringName, feature: String) -> Vector2i:
-	for y in _SIZE:
-		for x in _SIZE:
+	var h := _SAMPLE / 2
+	for y in range(-h, h):
+		for x in range(-h, h):
 			var cell := Vector2i(x, y)
 			if _world.get_biome(cell) != biome or not _world.is_walkable(cell):
 				continue  # Fluss-/unbegehbare Zellen sind keine gueltigen Bauplaetze
@@ -94,8 +99,9 @@ func _test_near_rule(failures: Array) -> void:
 	var woodcutter := Database.get_building_def(&"woodcutter")
 	var near_tree := Vector2i(-1, -1)
 	var far_from_tree := Vector2i(-1, -1)
-	for y in _SIZE:
-		for x in _SIZE:
+	var h := _SAMPLE / 2
+	for y in range(-h, h):
+		for x in range(-h, h):
 			var cell := Vector2i(x, y)
 			if _world.get_biome(cell) != &"grassland" or _world.get_feature(cell) != &"" \
 					or not _world.is_walkable(cell):
@@ -125,8 +131,8 @@ func _test_occupied_and_bounds(failures: Array) -> void:
 
 ## Freie Graslandzelle klar ausserhalb des Startgebiets (negative Koordinaten).
 func _far_free_grassland() -> Vector2i:
-	for y in range(-40, -10):
-		for x in range(-40, -10):
+	for y in range(-220, -40):
+		for x in range(-220, -40):
 			var cell := Vector2i(x, y)
 			if _world.get_biome(cell) == &"grassland" and _world.get_feature(cell) == &"" \
 					and _world.is_walkable(cell):

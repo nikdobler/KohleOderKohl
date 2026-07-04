@@ -58,5 +58,37 @@
 		"features": {},
 		"decor": { "snow_drift": 0.16, "ice": 0.06 },
 		"mountains": ["mountain_snowy"]
+	},
+	"beach": {
+		"id": "beach",
+		"display_name": "Küste",
+		"color": "#d8c98f",
+		"passable": true,
+		"features": {},
+		"decor": { "pebbles": 0.08, "grass_tuft": 0.05, "deadwood": 0.02 }
+	},
+	"forest": {
+		"id": "forest",
+		"display_name": "Wald",
+		"color": "#3f6b3a",
+		"passable": true,
+		"features": { "tree": 0.42, "rock": 0.01 },
+		"decor": { "fern": 0.12, "mushroom": 0.05, "bush": 0.08, "deadwood": 0.04 }
+	},
+	"heath": {
+		"id": "heath",
+		"display_name": "Heide",
+		"color": "#9a8a6a",
+		"passable": true,
+		"features": { "tree": 0.02, "rock": 0.03 },
+		"decor": { "bush": 0.1, "grass_tuft": 0.12, "deadwood": 0.04, "pebbles": 0.04 }
+	},
+	"desert": {
+		"id": "desert",
+		"display_name": "Ödland",
+		"color": "#cbb072",
+		"passable": true,
+		"features": { "rock": 0.03 },
+		"decor": { "pebbles": 0.1, "deadwood": 0.02 }
 	}
 }

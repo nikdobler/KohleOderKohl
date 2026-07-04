@@ -18,25 +18,60 @@ extends RefCounted
 ## (Bauplatz-Suche ab Zentrum, Kamera-Start, Ambient-Streuung) — gespielt,
 ## gebaut und gelaufen werden darf ueberall.
 
-## Frequenz des Biom-Rauschens (kleiner = groessere zusammenhaengende Gebiete).
-const NOISE_FREQUENCY: float = 0.06
+## Mehrschichtiges Hoehenfeld (M-Landschaft): eigene Noise-Kanaele mit Seed-
+## Offsets (kollidieren NICHT mit den Feature/Decor-Hash-Kanaelen). Kontinent/
+## Meer niederfrequent, Ridged-Kanal fuer zusammenhaengende Bergkaemme, dazu
+## rollende Huegel, Kuestendetail und ein Feuchte-Kanal.
+const SEED_CONT: int = 0
+const SEED_HILL: int = 1000
+const SEED_RIDGE: int = 2000
+const SEED_MOIST: int = 3000
+const SEED_DETAIL: int = 4000
+const NOISE_CONT_FREQ: float = 0.006    # Kontinent/Meer (~166 Zellen Wellenlaenge)
+const NOISE_HILL_FREQ: float = 0.030    # rollende Huegel
+const NOISE_RIDGE_FREQ: float = 0.012   # Bergkaemme (ridged, ~40 Zellen Segmente)
+const NOISE_MOIST_FREQ: float = 0.008   # Feuchte
+const NOISE_DETAIL_FREQ: float = 0.090  # Kuestenrauheit
+const HILL_W: float = 0.28
+const RIDGE_W: float = 0.90
+const DETAIL_W: float = 0.05
+## Grat-Kanal nur auf der Kontinent-Hochzone freischalten (weiche Maske) ->
+## Kaemme liegen als zusammenhaengende Wirbelsaeule, nicht verstreut.
+const MASK_LO: float = 0.15
+const MASK_HI: float = 0.50
+
+## Biom-Zonierungsschwellen auf der Hoehe h (kalibriert per Sampling, siehe
+## Kommentar am Ende) und auf der Feuchte m. Ersetzen die alten noise_max-Baender.
+const SEA_LEVEL: float = -0.18
+const COAST_HI: float = -0.10
+const LOWLAND_HI: float = 0.22
+const HILL_HI: float = 0.60
+const HIGH_HI: float = 1.05
+const MOIST_WET: float = 0.12
+const MOIST_DRY: float = -0.30  # Wueste/Heide nur im trockensten Bereich (selten)
 
 ## Flusslauf (§8.3): Regionsgroesse des Fluss-Caches, Quellen je Region,
-## Mindesthoehe einer Quelle und Mindestabstand zwischen Quellen.
+## Mindesthoehe einer Quelle (auf der neuen h-Skala) und Mindestabstand.
 const RIVER_REGION: int = 128
 const RIVERS_PER_REGION: int = 24
-const RIVER_SOURCE_MIN: float = 0.3
+const RIVER_SOURCE_MIN: float = 0.65
 const RIVER_SOURCE_SPACING: int = 12
-## Ab diesem Hoehenabfall zum Wassergruppen-Nachbarn gilt eine Flusszelle als Wasserfall.
-const WATERFALL_DROP: float = 0.18
+## Ab diesem Hoehenabfall zum Wassergruppen-Nachbarn gilt eine Flusszelle als
+## Wasserfall. Auf der neuen h-Skala + Interim-Fluss-Code klein gehalten;
+## echte Steilst-Abstieg-Fluesse (M2) erlauben spaeter einen groesseren Wert.
+const WATERFALL_DROP: float = 0.10
 
 var seed_value: int = 0
 var width: int = 0   # Startgebiet (nicht: Weltgrenze)
 var height: int = 0
 
-var _biome_defs: Array = []   # [{id, noise_max, features, decor}]
+var _biome_defs: Array = []   # [{id, features, decor}] (noise_max deprecated)
 var _passable_biomes: Dictionary = {}  # Biom-ID -> bool (Standard: begehbar)
-var _noise: FastNoiseLite
+var _noise_cont: FastNoiseLite   # Kontinent/Meer (niederfrequent)
+var _noise_hill: FastNoiseLite   # rollende Huegel
+var _noise_ridge: FastNoiseLite  # Bergkaemme (ridged)
+var _noise_detail: FastNoiseLite # Kuestenrauheit
+var _noise_moist: FastNoiseLite  # Feuchte
 var _river_regions: Dictionary = {}  # Regions-Koordinate -> {Zelle: true}
 
 ## Initialisiert die Welt. [param biome_defs] ist das rohe JSON-Dictionary aus
@@ -48,15 +83,28 @@ func generate(p_seed: int, p_width: int, p_height: int, biome_defs: Dictionary) 
 	height = p_height
 	_biome_defs = _typed_biome_defs(biome_defs)
 	_river_regions.clear()
-	_noise = FastNoiseLite.new()
-	_noise.seed = p_seed
-	_noise.frequency = NOISE_FREQUENCY
+	_noise_cont = _make_noise(SEED_CONT, NOISE_CONT_FREQ, false)
+	_noise_hill = _make_noise(SEED_HILL, NOISE_HILL_FREQ, false)
+	_noise_ridge = _make_noise(SEED_RIDGE, NOISE_RIDGE_FREQ, true)
+	_noise_detail = _make_noise(SEED_DETAIL, NOISE_DETAIL_FREQ, false)
+	_noise_moist = _make_noise(SEED_MOIST, NOISE_MOIST_FREQ, false)
+
+## Ein Noise-Kanal mit Seed-Offset; [param ridged] fuer zusammenhaengende Kaemme.
+func _make_noise(seed_offset: int, freq: float, ridged: bool) -> FastNoiseLite:
+	var n := FastNoiseLite.new()
+	n.seed = seed_value + seed_offset
+	n.frequency = freq
+	if ridged:
+		n.fractal_type = FastNoiseLite.FRACTAL_RIDGED
+		n.fractal_octaves = 4
+	return n
 
 ## Biom einer Zelle — ueberall definiert (M-Unendlich: keine Kartengrenze).
+## Aus Hoehe UND Feuchte (M-Landschaft), nicht mehr aus einem Rauschband.
 func get_biome(cell: Vector2i) -> StringName:
-	if _noise == null:
+	if _noise_cont == null:
 		return &""
-	return _pick_biome(_noise.get_noise_2d(cell.x, cell.y))
+	return _pick_biome2(get_elevation(cell), get_moisture(cell))
 
 ## Ressourcen-Merkmal einer Zelle (&"" = keines) — ueberall definiert.
 func get_feature(cell: Vector2i) -> StringName:
@@ -69,11 +117,25 @@ func get_decor(cell: Vector2i) -> StringName:
 		return &""
 	return _roll_decor(cell.x, cell.y, get_biome(cell))
 
-## Roh-Hoehe (Rauschwert) einer Zelle — ueberall definiert.
+## Hoehe einer Zelle aus dem mehrschichtigen Feld (M-Landschaft): Kontinent-Basis
+## + Huegel + Grat (nur auf der Hochzone via weicher Maske) + Kuestendetail.
+## Ueberall definiert; nur intern genutzt (Biomwahl, Fluesse, Wasserfall).
 func get_elevation(cell: Vector2i) -> float:
-	if _noise == null:
+	if _noise_cont == null:
 		return 0.0
-	return _noise.get_noise_2d(cell.x, cell.y)
+	var base := _noise_cont.get_noise_2d(cell.x, cell.y)
+	var hills := _noise_hill.get_noise_2d(cell.x, cell.y)
+	var ridge := _noise_ridge.get_noise_2d(cell.x, cell.y)
+	var detail := _noise_detail.get_noise_2d(cell.x, cell.y)
+	var mask := smoothstep(MASK_LO, MASK_HI, base)
+	return base + HILL_W * hills + RIDGE_W * mask * ridge + DETAIL_W * detail
+
+## Feuchte einer Zelle (M-Landschaft): eigener niederfrequenter Kanal, steuert
+## Vegetation (Wald/Moor/Grasland/Heide/Wueste).
+func get_moisture(cell: Vector2i) -> float:
+	if _noise_moist == null:
+		return 0.0
+	return _noise_moist.get_noise_2d(cell.x, cell.y)
 
 ## Kompatibilitaets-Aliase (M17): seit M-Unendlich ist die ganze Welt
 ## "peekbar" — get_* und peek_* sind identisch.
@@ -165,7 +227,7 @@ const SLOT_SPACING: int = 2
 ## Plaetze aendern sich nicht, wenn spaeter mehr angefordert werden.
 func building_slots(count: int) -> Array:
 	var slots: Array = []
-	var center := Vector2i(width / 2, height / 2)
+	var center := _land_start_center()
 	var radius := 0
 	var max_radius := maxi(width, height)
 	while slots.size() < count and radius <= max_radius:
@@ -204,6 +266,26 @@ func nearest_free_cell(target: Vector2i) -> Vector2i:
 				return cell
 	return target
 
+## Land-nahes Startzentrum (M-Landschaft): das geometrische Zentrum kann jetzt
+## im Meer oder auf einem Gipfel liegen. Spiralt vom Zentrum zur naechsten
+## begehbaren, merkmalfreien Landzelle — bevorzugt gutes Bauland (Grasland/Tal/
+## Kueste/Huegel), sonst die naechste begehbare Landzelle. Deterministisch.
+func _land_start_center() -> Vector2i:
+	var center := Vector2i(width / 2, height / 2)
+	var preferred: Array = [&"grassland", &"valley", &"beach", &"hills"]
+	var fallback := center
+	var found_fallback := false
+	for radius in maxi(width, height) * 4:
+		for cell in _ring_cells(center, radius):
+			if not is_walkable(cell) or get_feature(cell) != &"":
+				continue
+			if get_biome(cell) in preferred:
+				return cell
+			if not found_fallback:
+				fallback = cell
+				found_fallback = true
+	return fallback
+
 ## Haelt die Zelle Mindestabstand zu allen bereits vergebenen Plaetzen?
 func _far_from_all(cell: Vector2i, slots: Array) -> bool:
 	for other in slots:
@@ -221,12 +303,28 @@ func to_dict() -> Dictionary:
 func from_dict(d: Dictionary, biome_defs: Dictionary) -> void:
 	generate(int(d.get("seed", 0)), int(d.get("width", 64)), int(d.get("height", 64)), biome_defs)
 
-## Erstes Biom, dessen noise_max den Rauschwert abdeckt (Definitionsreihenfolge).
-func _pick_biome(noise_value: float) -> StringName:
-	for def in _biome_defs:
-		if noise_value <= def["noise_max"]:
-			return def["id"]
-	return _biome_defs[-1]["id"] if not _biome_defs.is_empty() else &""
+## Biom aus Hoehe h und Feuchte m (M-Landschaft): Zonierung Gipfel -> Meer,
+## Feuchte verschiebt die Vegetation. Alle IDs existieren in biomes.json.
+func _pick_biome2(h: float, m: float) -> StringName:
+	if h < SEA_LEVEL:
+		return &"water"                                   # zusammenhaengendes Meer
+	if h < COAST_HI:
+		return &"swamp" if m > MOIST_WET else &"beach"    # Kuestenmoor vs. Sandkueste
+	if h < LOWLAND_HI:
+		if m < MOIST_DRY:
+			return &"desert"                              # trockenes Oedland
+		if m > MOIST_WET:
+			return &"forest"                              # dichter Wald
+		return &"valley" if m > 0.0 else &"grassland"     # lichter Wald vs. Ebene
+	if h < HILL_HI:
+		if m > MOIST_WET:
+			return &"forest"                              # Bergwald
+		if m < MOIST_DRY:
+			return &"heath"                               # Heide
+		return &"hills"                                   # bewaldete Huegel
+	if h < HIGH_HI:
+		return &"highlands"                               # Fels-Hochland
+	return &"snow"                                        # Gipfel
 
 ## Merkmal einer Zelle (Baum/Fels): eigener, koordinatenbasierter RNG-Seed, damit
 ## das Ergebnis unabhaengig von der Zugriffs-Reihenfolge deterministisch ist.

@@ -43,20 +43,50 @@ func _test_grid_grows_with_distant_target(failures: Array) -> void:
 	var combat := _make_system(100, 100)
 	combat.setup_grid_map(map, Rect2i(0, 0, 12, 12))
 	var start := map.nearest_free_cell(Vector2i(2, 2))
+	# Fernes ERREICHBARES Ziel per BFS ueber begehbares Land (seit M-Landschaft
+	# blockiert Wasser -> ein fixes Ziel koennte auf einer anderen Landmasse liegen).
+	var target := _reachable_far_cell(map, start, 60)
+	var start_dist := maxi(absi(start.x - target.x), absi(start.y - target.y))
+	if start_dist < 20:
+		failures.append("Unendlich: kein fernes erreichbares Ziel gefunden (Landmasse zu klein)")
+		return
 	var unit := combat.add_unit(&"swordsman", CombatSystem.FACTION_PLAYER,
 		start, CombatSystem.STANCE_GUARD, start)
-	var target := map.nearest_free_cell(Vector2i(60, -40))
 	if not combat.command_move(unit.id, target):
 		failures.append("Unendlich: Marschbefehl muss angenommen werden")
 		return
-	var start_dist := maxi(absi(start.x - target.x), absi(start.y - target.y))
-	for i in 300:
+	for i in 500:
 		combat.tick()
 		if unit.cell == target:
 			break
 	var end_dist := maxi(absi(unit.cell.x - target.x), absi(unit.cell.y - target.y))
-	if end_dist > start_dist - 20:
-		failures.append("Unendlich: Einheit muss deutlich Richtung Fernziel marschieren (%d -> %d)" % [start_dist, end_dist])
+	if end_dist > 1:
+		failures.append("Unendlich: Einheit muss das ferne Ziel erreichen (Gitter waechst mit) (%d -> %d)" % [start_dist, end_dist])
+
+## Entferntestes per begehbarem Land (4er-BFS) erreichbares Feld in einer Box
+## um [param start] — garantiert ein zusammenhaengend erreichbares Marschziel.
+func _reachable_far_cell(map: WorldMap, start: Vector2i, radius: int) -> Vector2i:
+	var visited := {start: true}
+	var queue: Array = [start]
+	var head := 0
+	var best := start
+	var best_dist := 0
+	while head < queue.size():
+		var c: Vector2i = queue[head]
+		head += 1
+		var d := maxi(absi(c.x - start.x), absi(c.y - start.y))
+		if d > best_dist:
+			best_dist = d
+			best = c
+		for dir in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var n: Vector2i = c + dir
+			if visited.has(n) or absi(n.x - start.x) > radius or absi(n.y - start.y) > radius:
+				continue
+			if not map.is_walkable(n):
+				continue
+			visited[n] = true
+			queue.append(n)
+	return best
 
 ## System ohne Wellen/Verteidiger; Bergfriede an gegebenen Zellen.
 func _make_system(player_hp: int, enemy_hp: int, enemy_cfg: Dictionary = {}) -> CombatSystem:
