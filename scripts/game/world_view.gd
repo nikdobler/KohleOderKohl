@@ -59,6 +59,27 @@ const SEASON_TINTS: Dictionary = {
 }
 const SEASON_TINT_DURATION: float = 2.0  # Uebergangsdauer der Toenung
 
+## Tag/Nacht-Lichtverlauf (M-Tageszeit): multiplikative Toenung ueber den Tag,
+## an den Tagesfortschritt 0..1 aus [DayCycle] gesampelt. Wird MIT der
+## Saisontoenung multipliziert (beides faerbt dieselbe Welt). Stuetzstellen
+## als Klassen-Member (Packed-Arrays sind keine const-Ausdruecke in GDScript).
+var _day_gradient_offsets := PackedFloat32Array(
+	[0.0, 0.12, 0.25, 0.40, 0.55, 0.68, 0.80, 0.92, 1.0])
+var _day_gradient_colors := PackedColorArray([
+	Color(0.60, 0.58, 0.72),  # Morgenbeginn: daemmrig-kuehl
+	Color(1.00, 0.86, 0.78),  # Sonnenaufgang: warm
+	Color(1.00, 0.97, 0.90),  # heller Morgen
+	Color(1.00, 1.00, 1.00),  # Mittag: neutral, am hellsten
+	Color(1.00, 0.93, 0.83),  # Nachmittag
+	Color(1.00, 0.76, 0.60),  # Sonnenuntergang: orange
+	Color(0.60, 0.58, 0.78),  # Daemmerung
+	Color(0.40, 0.44, 0.64),  # tiefe Nacht: dunkelblau (noch spielbar)
+	Color(0.60, 0.58, 0.72),  # = Morgenbeginn (nahtloser Umlauf)
+])
+## Nachfuehr-Rate der Toenung pro Sekunde (exponentielles Glaetten).
+const DAY_EASE: float = 3.0
+const SEASON_EASE: float = 1.5
+
 var _map: WorldMap
 var _ground: TileMapLayer
 var _decor: TileMapLayer  # rein dekoratives Gruenzeug (flach, unter allen Sprites)
@@ -92,8 +113,12 @@ var _ghost_cell := Vector2i.ZERO  # Zelle, auf der der Geist steht (= Bau-/Abris
 var _snow: CPUParticles2D  # Schneefall (M-Jahreszeiten, seit M-Wetter wettergesteuert)
 var _rain: CPUParticles2D  # Regen (M-Wetter)
 var _fog: ColorRect  # Nebelschleier ueber der Welt (M-Wetter)
-var _season_tween: Tween  # laufender Toenungs-Uebergang
 var _fog_tween: Tween  # laufender Nebel-Uebergang
+var _day_gradient: Gradient  # Tag/Nacht-Farbverlauf (M-Tageszeit)
+var _season_tint := Color.WHITE  # aktuelle Saisontoenung (geglaettet)
+var _season_tint_target := Color.WHITE
+var _day_tint := Color.WHITE  # aktuelle Tageszeit-Toenung (geglaettet)
+var _day_tint_target := Color.WHITE
 var _village := VillageLife.new()  # Bewegungs-Logik der Dorfbewohner (pures Modell)
 var _villager_sprites: Dictionary = {}  # Bewohner-ID -> Sprite2D
 var _anim_time: float = 0.0  # gemeinsame Uhr fuer prozedurale Animationen
@@ -133,6 +158,8 @@ func _ready() -> void:
 	EventBus.build_preview_result.connect(_on_preview_result)
 	EventBus.season_changed.connect(_on_season_changed)
 	EventBus.weather_changed.connect(_on_weather_changed)
+	EventBus.daytime_changed.connect(_on_daytime_changed)
+	_setup_day_gradient()
 	_setup_snow()
 	_setup_rain()
 	_setup_fog()
@@ -322,14 +349,23 @@ func _setup_fog() -> void:
 	_fog.z_index = 3940  # ueber der Welt, unter Niederschlag und Bau-Geist
 	add_child(_fog)
 
-## Saisonwechsel (M-Jahreszeiten): Welt sanft toenen. Ob es dabei schneit
-## oder regnet, entscheidet seit M-Wetter die Wetterlage.
+## Tag/Nacht-Farbverlauf aufbauen (M-Tageszeit): einmalige Gradient-Kurve,
+## die spaeter pro Tagesfortschritt gesampelt wird.
+func _setup_day_gradient() -> void:
+	_day_gradient = Gradient.new()
+	_day_gradient.offsets = _day_gradient_offsets
+	_day_gradient.colors = _day_gradient_colors
+
+## Saisonwechsel (M-Jahreszeiten): Zielton setzen; die Welt gleitet in
+## [method _process] weich dorthin. Ob es dabei schneit oder regnet,
+## entscheidet seit M-Wetter die Wetterlage.
 func _on_season_changed(season: StringName, _display: String) -> void:
-	var tint: Color = SEASON_TINTS.get(season, Color.WHITE)
-	if _season_tween != null and _season_tween.is_valid():
-		_season_tween.kill()
-	_season_tween = create_tween()
-	_season_tween.tween_property(self, "modulate", tint, SEASON_TINT_DURATION)
+	_season_tint_target = SEASON_TINTS.get(season, Color.WHITE)
+
+## Tageszeit (M-Tageszeit): Zielton aus dem Tagesfortschritt sampeln; die
+## Welt gleitet in [method _process] weich dorthin.
+func _on_daytime_changed(tod: float, _phase: StringName, _display: String) -> void:
+	_day_tint_target = _day_gradient.sample(tod)
 
 ## Wetterwechsel (M-Wetter): passenden Niederschlag zeigen, Nebel ein-/ausblenden.
 func _on_weather_changed(weather: StringName, _display: String) -> void:
@@ -359,6 +395,12 @@ func _update_weather_overlays() -> void:
 
 func _process(delta: float) -> void:
 	_anim_time += delta
+	# Saison- und Tageszeit-Toenung weich nachfuehren und multiplikativ auf die
+	# ganze Welt legen (beide faerben dieselbe modulate — deshalb komponiert,
+	# nicht ueberschrieben). HUD liegt auf eigener CanvasLayer, bleibt hell.
+	_season_tint = _season_tint.lerp(_season_tint_target, minf(1.0, delta * SEASON_EASE))
+	_day_tint = _day_tint.lerp(_day_tint_target, minf(1.0, delta * DAY_EASE))
+	modulate = _season_tint * _day_tint
 	_move_perf_units(delta)
 	_move_ambient(delta)
 	_move_villagers(delta)

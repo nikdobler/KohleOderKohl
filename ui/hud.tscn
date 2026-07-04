@@ -35,6 +35,23 @@ text = "Frühling, Jahr 1"
 layout_mode = 2
 text = "Klar"
 
+[node name="DayLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Morgen"
+
+[node name="SpeedLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Zeit: 1x"
+
+[node name="SpeedSlider" type="HSlider" parent="TopBar/HBox"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_vertical = 4
+min_value = 0.0
+max_value = 5.0
+step = 1.0
+value = 2.0
+
 [node name="ResourcesBox" type="HBoxContainer" parent="TopBar/HBox"]
 layout_mode = 2
 theme_override_constants/separation = 12

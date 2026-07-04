@@ -10,6 +10,9 @@ const _TAX_NAMES: Array = ["keine", "moderat", "hoch"]
 const _TRADE_LOT: int = 5
 ## Maximale Eintraege der Chronik (aelteste fliegen raus, M15).
 const _LOG_MAX: int = 80
+## Zeit-Regler-Stufen (M-Tageszeit): Slider-Index -> Geschwindigkeitsfaktor.
+const _SPEED_STEPS: Array = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0]
+const _SPEED_LABELS: Array = ["0.25", "0.5", "1", "2", "4", "8"]
 ## Chronik-Farben je Kategorie.
 const _LOG_COLORS: Dictionary = {
 	"Kampf": Color(1.0, 0.75, 0.7),
@@ -47,6 +50,9 @@ const _LOG_COLORS: Dictionary = {
 @onready var _fps_label: Label = $TopBar/HBox/FpsLabel
 @onready var _season_label: Label = $TopBar/HBox/SeasonLabel
 @onready var _weather_label: Label = $TopBar/HBox/WeatherLabel
+@onready var _day_label: Label = $TopBar/HBox/DayLabel
+@onready var _speed_label: Label = $TopBar/HBox/SpeedLabel
+@onready var _speed_slider: HSlider = $TopBar/HBox/SpeedSlider
 @onready var _dialogue_panel: PanelContainer = $DialoguePanel
 @onready var _dialogue_portrait: TextureRect = $DialoguePanel/HBox/Portrait
 @onready var _dialogue_speaker: Label = $DialoguePanel/HBox/VBox/SpeakerLabel
@@ -113,6 +119,10 @@ func _ready() -> void:
 		func(_season: StringName, display: String) -> void: _season_label.text = display)
 	EventBus.weather_changed.connect(
 		func(_weather: StringName, display: String) -> void: _weather_label.text = display)
+	EventBus.daytime_changed.connect(
+		func(_tod: float, _phase: StringName, display: String) -> void: _day_label.text = display)
+	EventBus.game_speed_changed.connect(_on_game_speed_changed)
+	_speed_slider.value_changed.connect(_on_speed_slider_changed)
 	EventBus.research_failed.connect(_flash)
 	EventBus.game_saved.connect(func() -> void: _flash("Gespeichert."))
 	EventBus.game_loaded.connect(_on_game_loaded)
@@ -354,6 +364,23 @@ func _on_scenario_state_changed(info: Dictionary) -> void:
 
 func _on_satisfaction_changed(value: int) -> void:
 	_satisfaction_label.text = "Zufriedenheit: %d %%" % value
+
+## Zeit-Regler bewegt (M-Tageszeit): Slider-Index -> Geschwindigkeitsfaktor an
+## den Controller melden; dieser skaliert den Haupt-Tick fuer alles zugleich.
+func _on_speed_slider_changed(value: float) -> void:
+	var index := clampi(int(value), 0, _SPEED_STEPS.size() - 1)
+	_speed_label.text = "Zeit: %sx" % _SPEED_LABELS[index]
+	EventBus.game_speed_change_requested.emit(float(_SPEED_STEPS[index]))
+
+## Controller meldet die aktuelle Geschwindigkeit (Init/Load): Regler auf die
+## naechste Stufe stellen, ohne dabei erneut ein Aendern-Signal auszuloesen.
+func _on_game_speed_changed(speed: float) -> void:
+	var index := 0
+	for i in _SPEED_STEPS.size():
+		if absf(_SPEED_STEPS[i] - speed) < absf(_SPEED_STEPS[index] - speed):
+			index = i
+	_speed_slider.set_value_no_signal(float(index))
+	_speed_label.text = "Zeit: %sx" % _SPEED_LABELS[index]
 
 ## Aktualisiert Bergfried-Anzeige, Soldatenzahl und Haltung-Knopf.
 func _on_combat_state_changed(snapshot: Dictionary) -> void:

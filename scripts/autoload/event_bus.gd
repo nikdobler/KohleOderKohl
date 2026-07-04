@@ -77,6 +77,17 @@ signal season_changed(season: StringName, display: String)
 ## Controller -> UI/Welt: neue Wetterlage (M-Wetter).
 signal weather_changed(weather: StringName, display: String)
 
+## Controller -> UI/Welt: Tageszeit (M-Tageszeit). tod = Tagesfortschritt 0..1
+## fuer den stufenlosen Licht-/Farbverlauf, phase/display fuer das HUD-Label.
+signal daytime_changed(tod: float, phase: StringName, display: String)
+
+## UI -> Controller: Zeit-Regler geaendert (skaliert den Haupt-Tick, M-Tageszeit).
+signal game_speed_change_requested(speed: float)
+
+## Controller -> UI: aktuelle Spielgeschwindigkeit (Init/Load, damit der
+## Regler den geladenen Wert anzeigt).
+signal game_speed_changed(speed: float)
+
 ## Controller -> UI: Status einer Technologie (locked/available/researched).
 signal tech_state_changed(tech_id: StringName, status: StringName)
 

@@ -28,6 +28,7 @@ var _campaign_chapter: String = ""  # aktives Kapitel ("" = freies Szenario)
 var _last_season: StringName = &""  # gemeldete Saison (Wechsel-Erkennung)
 var _weather := Weather.new()  # Wetterlagen aus data/weather.json (M-Wetter)
 var _last_weather: StringName = &""  # gemeldete Wetterlage (Wechsel-Erkennung)
+var _game_speed: float = 1.0  # Zeit-Regler: Faktor auf den Haupt-Tick (M-Tageszeit)
 var _timer: Timer
 
 func _ready() -> void:
@@ -175,6 +176,7 @@ func _connect_events() -> void:
 	EventBus.unit_move_requested.connect(_on_unit_move)
 	EventBus.save_requested.connect(_on_save)
 	EventBus.load_requested.connect(_on_load)
+	EventBus.game_speed_change_requested.connect(_on_game_speed_change)
 
 func _start_tick_timer() -> void:
 	_timer = Timer.new()
@@ -190,6 +192,7 @@ func _on_tick() -> void:
 		EventBus.stock_changed.emit(resource_id, _economy.get_stock(resource_id))
 	EventBus.satisfaction_changed.emit(_economy.satisfaction)
 	_season_tick()
+	_daytime_tick()
 	_research_tick()
 	_combat_tick()
 	_scenario_tick()
@@ -218,6 +221,27 @@ func _apply_weather(tick: int, force_emit: bool = false) -> void:
 	if weather != _last_weather or force_emit:
 		_last_weather = weather
 		EventBus.weather_changed.emit(weather, _weather.display_name(weather))
+
+## Tageszeit melden (M-Tageszeit): der Tagesfortschritt speist den stufenlosen
+## Licht-/Farbverlauf der WorldView, die Phase das HUD-Label. Rein optisch —
+## reine Funktion des Ticks, nichts zu speichern.
+func _daytime_tick() -> void:
+	var tick := _economy.tick_count
+	EventBus.daytime_changed.emit(
+		DayCycle.time_of_day(tick), DayCycle.phase(tick), DayCycle.display(tick))
+
+## Zeit-Regler (M-Tagessteuerung): skaliert den Haupt-Tick, damit Tag/Nacht,
+## Jahreszeiten UND Wirtschaft gemeinsam schneller/langsamer laufen. Die
+## Spielbalance bleibt erhalten (nur die Echtzeit-Dauer aendert sich).
+func _on_game_speed_change(speed: float) -> void:
+	_game_speed = clampf(speed, 0.1, 16.0)
+	_apply_game_speed()
+	EventBus.game_speed_changed.emit(_game_speed)
+
+func _apply_game_speed() -> void:
+	_timer.wait_time = TICK_SECONDS / _game_speed
+	if not _timer.paused and not _timer.is_stopped():
+		_timer.start()  # neuen Takt sofort wirksam machen (sonst erst naechster Tick)
 
 func _season_message(season: StringName) -> String:
 	match season:
@@ -678,6 +702,7 @@ func _on_save() -> void:
 		"scenario": _scenario.to_dict(),
 		"scenario_id": String(_scenario._def.get("id", DEFAULT_SCENARIO)),
 		"campaign_chapter": _campaign_chapter,
+		"game_speed": _game_speed,
 	}
 	if SaveManager.save_game(GameState.to_dict()) == OK:
 		EventBus.game_saved.emit()
@@ -689,6 +714,8 @@ func _on_load() -> void:
 	var scenario_id: String = GameState.data.get("scenario_id", DEFAULT_SCENARIO)
 	_scenario = Scenario.from_def(Database.scenarios.get(scenario_id, {}))
 	_campaign_chapter = String(GameState.data.get("campaign_chapter", ""))
+	_game_speed = float(GameState.data.get("game_speed", 1.0))
+	_apply_game_speed()
 	var economy_data: Dictionary = GameState.data.get("economy", {})
 	if not economy_data.is_empty():
 		_economy.from_dict(economy_data)
@@ -748,6 +775,8 @@ func _emit_full_state() -> void:
 	_last_season = Calendar.season(_economy.tick_count)
 	EventBus.season_changed.emit(_last_season, Calendar.display(_economy.tick_count))
 	_apply_weather(_economy.tick_count, true)
+	_daytime_tick()
+	EventBus.game_speed_changed.emit(_game_speed)
 	EventBus.combat_state_changed.emit(_combat.snapshot())
 	EventBus.scenario_state_changed.emit(_scenario_info())
 	EventBus.quest_state_changed.emit(_scenario.quest_states())
