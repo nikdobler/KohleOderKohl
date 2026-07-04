@@ -48,6 +48,12 @@ func campaign_only() -> bool:
 	return _def.get("campaign_only", false)
 
 ## Zu Beginn bereits erforschte Technologien.
+## Saison, in der das Szenario beginnt (Standard Fruehling, M-Startsaison).
+## Versetzt den Jahreszeiten-Lauf, sodass z. B. eine Winter-Partie sofort mit
+## ruhenden Feldern startet.
+func start_season() -> StringName:
+	return StringName(_def.get("start", {}).get("season", "spring"))
+
 func start_researched() -> Array:
 	var researched: Array = []
 	for id in _def.get("start", {}).get("researched", []):

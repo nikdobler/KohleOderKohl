@@ -16,6 +16,9 @@ func run() -> Array:
 	_test_autumn_boosts_field(failures)
 	_test_winter_halves_livestock(failures)
 	_test_seasonal_roundtrip(failures)
+	_test_season_start_tick(failures)
+	_test_start_offset_shifts_season(failures)
+	_test_season_offset_roundtrip(failures)
 	return failures
 
 ## Weizenfeld-Testgebaeude mit den echten Saison-Faktoren aus buildings.json.
@@ -132,3 +135,47 @@ func _test_seasonal_roundtrip(failures: Array) -> void:
 			or not is_equal_approx(restored.season_factor(&"summer"), 1.0):
 		failures.append("Roundtrip: seasonal-Faktoren nach Laden falsch (%s)"
 			% str(restored.seasonal))
+
+## Startversatz zeigt auf den Beginn der jeweiligen Saison (M-Startsaison).
+func _test_season_start_tick(failures: Array) -> void:
+	var s := Calendar.SEASON_TICKS
+	var cases := {&"spring": 0, &"summer": s, &"autumn": 2 * s, &"winter": 3 * s}
+	for season in cases:
+		var offset := Calendar.season_start_tick(season)
+		if offset != cases[season] or Calendar.season(offset) != season:
+			failures.append("Startversatz: %s erwartet %d, erhalten %d (Saison %s)"
+				% [season, cases[season], offset, Calendar.season(offset)])
+	if Calendar.season_start_tick(&"nonsense") != 0:  # unbekannt -> Fruehling
+		failures.append("Startversatz: unbekannte Saison muss 0 (Fruehling) ergeben")
+
+## Der Startversatz verschiebt die Produktion in die Startsaison: ein Feld
+## produziert bei Winterstart (Tick 0) nichts, bei Herbststart mit Boost.
+func _test_start_offset_shifts_season(failures: Array) -> void:
+	var winter := Economy.new()
+	winter.season_offset = Calendar.season_start_tick(&"winter")
+	var w_field := _make_field()
+	w_field.set_workers(1)
+	winter.add_building(w_field)
+	winter.tick()
+	if winter.get_stock(&"wheat") != 0:
+		failures.append("Winterstart: Feld muss ab Tick 0 ruhen, erhalten %d"
+			% winter.get_stock(&"wheat"))
+	var autumn := Economy.new()
+	autumn.season_offset = Calendar.season_start_tick(&"autumn")
+	var a_field := _make_field()
+	a_field.set_workers(1)
+	autumn.add_building(a_field)
+	autumn.tick()
+	if autumn.get_stock(&"wheat") != 3:  # Herbst-Boost 1.5: 2 -> 3
+		failures.append("Herbststart: Feld muss ab Tick 0 boosten (3), erhalten %d"
+			% autumn.get_stock(&"wheat"))
+
+## season_offset ueberlebt Speichern/Laden der Wirtschaft.
+func _test_season_offset_roundtrip(failures: Array) -> void:
+	var eco := Economy.new()
+	eco.season_offset = Calendar.season_start_tick(&"autumn")
+	var restored := Economy.new()
+	restored.from_dict(eco.to_dict())
+	if restored.season_offset != eco.season_offset:
+		failures.append("Roundtrip: season_offset nach Laden falsch (%d statt %d)"
+			% [restored.season_offset, eco.season_offset])

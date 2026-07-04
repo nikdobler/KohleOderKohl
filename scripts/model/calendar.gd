@@ -44,3 +44,14 @@ static func season_name(season_id: StringName) -> String:
 ## Anzeigetext fuer die UI, z. B. "Herbst, Jahr 2".
 static func display(tick: int) -> String:
 	return "%s, Jahr %d" % [season_name(season(tick)), year(tick)]
+
+## Tick-Versatz fuer den Beginn einer bestimmten Saison (M-Startsaison):
+## Fruehling=0, Sommer=1*SEASON_TICKS, ...  Damit kann ein Szenario direkt
+## in einer anderen Saison starten (z. B. Winter -> Felder ruhen ab Tick 0).
+## Unbekannte Saison -> Fruehling.
+static func season_start_tick(season_id: StringName) -> int:
+	var index := SEASONS.find(season_id)
+	if index < 0:
+		push_warning("Calendar: unbekannte Saison '%s' -> Fruehling." % season_id)
+		return 0
+	return index * SEASON_TICKS

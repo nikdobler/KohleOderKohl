@@ -142,6 +142,7 @@ func _refresh_ranged_structures() -> void:
 ## bereits erforschte Technologien (kostenlos, ohne Gebaeude-Spawn).
 func _apply_scenario_start() -> void:
 	_economy.stock = _scenario.start_stock()
+	_economy.season_offset = Calendar.season_start_tick(_scenario.start_season())
 	var entries := _scenario.start_buildings()
 	var slots := _world.building_slots(entries.size())
 	for i in entries.size():
@@ -187,7 +188,7 @@ func _start_tick_timer() -> void:
 
 ## Ein Produktionsschritt: Wirtschaft, Kampf und Dialog-Trigger im selben Tick.
 func _on_tick() -> void:
-	_apply_weather(_economy.tick_count + 1)  # Wetter VOR der Simulation setzen
+	_apply_weather(_economy.season_tick() + 1)  # Wetter VOR der Simulation setzen
 	for resource_id in _economy.tick():
 		EventBus.stock_changed.emit(resource_id, _economy.get_stock(resource_id))
 	EventBus.satisfaction_changed.emit(_economy.satisfaction)
@@ -201,12 +202,12 @@ func _on_tick() -> void:
 ## Jahreszeiten-Wechsel melden (M-Jahreszeiten): die Saison selbst ist eine
 ## reine Funktion des Ticks — hier wird nur die Flanke erkannt.
 func _season_tick() -> void:
-	var season := Calendar.season(_economy.tick_count)
+	var season := Calendar.season(_economy.season_tick())
 	if season == _last_season:
 		return
 	var had_season := _last_season != &""
 	_last_season = season
-	EventBus.season_changed.emit(season, Calendar.display(_economy.tick_count))
+	EventBus.season_changed.emit(season, Calendar.display(_economy.season_tick()))
 	if had_season:  # Spielstart ist keine Meldung wert, echte Wechsel schon
 		EventBus.scenario_event.emit(_season_message(season))
 
@@ -350,7 +351,7 @@ func _game_snapshot() -> Dictionary:
 		"researched": researched,
 		"combat_status": String(_combat.status),
 		"buildings": buildings,
-		"season": String(Calendar.season(_economy.tick_count)),
+		"season": String(Calendar.season(_economy.season_tick())),
 	}
 
 ## Kampfschritt: Ereignisse melden, Gefallene geben Wohnraum frei.
@@ -772,9 +773,9 @@ func _emit_full_state() -> void:
 	EventBus.housing_changed.emit(
 		_economy.assigned_workers() + _economy.reserved_population, _economy.housing_capacity())
 	EventBus.satisfaction_changed.emit(_economy.satisfaction)
-	_last_season = Calendar.season(_economy.tick_count)
-	EventBus.season_changed.emit(_last_season, Calendar.display(_economy.tick_count))
-	_apply_weather(_economy.tick_count, true)
+	_last_season = Calendar.season(_economy.season_tick())
+	EventBus.season_changed.emit(_last_season, Calendar.display(_economy.season_tick()))
+	_apply_weather(_economy.season_tick(), true)
 	_daytime_tick()
 	EventBus.game_speed_changed.emit(_game_speed)
 	EventBus.combat_state_changed.emit(_combat.snapshot())

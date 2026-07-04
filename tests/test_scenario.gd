@@ -41,6 +41,7 @@ const _DEF := {
 func run() -> Array:
 	var failures: Array = []
 	_test_start_config(failures)
+	_test_start_season(failures)
 	_test_events_fire_once(failures)
 	_test_quests(failures)
 	_test_apply_effects(failures)
@@ -80,6 +81,14 @@ func _test_start_config(failures: Array) -> void:
 		failures.append("Start: Gebaeudeliste falsch")
 	if s.start_researched() != [&"stonemasonry"]:
 		failures.append("Start: Forschung falsch")
+
+## Startsaison: Standard Fruehling, explizit gesetzte wird uebernommen.
+func _test_start_season(failures: Array) -> void:
+	if Scenario.from_def(_DEF).start_season() != &"spring":
+		failures.append("Startsaison: Standard muss Fruehling sein")
+	var winter := Scenario.from_def({"start": {"season": "winter"}})
+	if winter.start_season() != &"winter":
+		failures.append("Startsaison: explizite Saison wird nicht uebernommen")
 
 ## Events feuern beim Trigger — und genau einmal.
 func _test_events_fire_once(failures: Array) -> void:
@@ -142,6 +151,8 @@ func _test_data_files_consistent(failures: Array) -> void:
 	for scenario_id in Database.scenarios:
 		var def: Dictionary = Database.scenarios[scenario_id]
 		var start: Dictionary = def.get("start", {})
+		if start.has("season") and not Calendar.SEASONS.has(StringName(start["season"])):
+			failures.append("Daten: unbekannte Startsaison '%s' (%s)" % [start["season"], scenario_id])
 		for res in start.get("stock", {}):
 			if not Database.resources.has(res):
 				failures.append("Daten: Start-Ressource '%s' fehlt (%s)" % [res, scenario_id])

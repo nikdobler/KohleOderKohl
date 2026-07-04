@@ -1,6 +1,6 @@
 {
 	"id": "hungersnot", "display_name": "Die Hungersnot", "description": "Die Speicher sind fast leer, der Winter fragt nicht. Bringt das Volk durch.",
-	"start": { "stock": { "wood": 20, "bread": 8 }, "researched": [], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"start": { "season": "winter", "stock": { "wood": 20, "bread": 8 }, "researched": [], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
 	"goal": { "description": "Bringt die Zufriedenheit trotz allem auf 65.", "trigger": { "type": "satisfaction_at_least", "amount": 65 } },
 	"events": [
 		{ "id": "missernte", "trigger": { "type": "tick_reached", "tick": 30 }, "message": "Missernte! Der Weizen fault auf dem Halm.", "effects": [ { "type": "stock_multiply", "resource": "wheat", "factor": 0.0 }, { "type": "satisfaction_add", "amount": -12 } ] },

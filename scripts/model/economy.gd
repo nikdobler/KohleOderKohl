@@ -34,6 +34,12 @@ var buildings: Array[BuildingInstance] = []
 ## Zufriedenheit der Arbeiter, einfacher Wert 0..100 (M2).
 var satisfaction: int = SATISFACTION_START
 var tick_count: int = 0
+## Saison-Startversatz in Ticks (M-Startsaison): das Szenario kann in einer
+## anderen Jahreszeit als Fruehling beginnen. Die Saison ist damit Funktion
+## von (tick_count + season_offset); der Tag/Nacht-Zyklus bleibt unversetzt
+## (jede Partie startet am Morgen). Betrifft NUR die Saison, nicht die
+## Szenario-/Dialog-tick_reached-Trigger (die zaehlen ab 0).
+var season_offset: int = 0
 ## Aktuelle Wetterlage (M-Wetter): setzt der Controller vor jedem Tick;
 ## deterministisch aus Seed+Tick, wird deshalb nicht gespeichert.
 var current_weather: StringName = &"clear"
@@ -170,6 +176,12 @@ func try_change_workers(def_id: StringName, delta: int) -> bool:
 
 ## Ein Simulationsschritt: Produktion aller Gebaeude, periodisch Versorgung.
 ## Rueckgabe: Liste der veraenderten Ressourcen-IDs (fuer gezielte UI-Updates).
+## Effektiver Tick fuer die Saison-Berechnung (M-Startsaison): der reine
+## Zaehler plus Startversatz. Nur fuer Jahreszeiten/Wetter — nicht fuer
+## tick_reached-Trigger, die den rohen [member tick_count] nutzen.
+func season_tick() -> int:
+	return tick_count + season_offset
+
 func tick() -> Array:
 	tick_count += 1
 	var changed: Array = []
@@ -187,7 +199,7 @@ func tick() -> Array:
 func _produce(b: BuildingInstance, changed: Array) -> void:
 	if b.workers == 0 or b.produces == &"":
 		return
-	var season_factor := b.season_factor(Calendar.season(tick_count))
+	var season_factor := b.season_factor(Calendar.season(season_tick()))
 	if season_factor <= 0.0:
 		return  # Saisonpause (Winterruhe): kein Verbrauch, keine Ausbeute
 	for res in b.consumes:
@@ -276,6 +288,7 @@ func to_dict() -> Dictionary:
 		"buildings": building_list,
 		"satisfaction": satisfaction,
 		"tick_count": tick_count,
+		"season_offset": season_offset,
 		"reserved_population": reserved_population,
 		"ration_level": ration_level,
 		"work_policy": work_policy,
@@ -294,6 +307,7 @@ func from_dict(d: Dictionary) -> void:
 		buildings.append(BuildingInstance.from_dict(building_dict))
 	satisfaction = clampi(int(d.get("satisfaction", SATISFACTION_START)), 0, 100)
 	tick_count = int(d.get("tick_count", 0))
+	season_offset = int(d.get("season_offset", 0))
 	reserved_population = int(d.get("reserved_population", 0))
 	ration_level = clampi(int(d.get("ration_level", 1)), 0, 2)
 	work_policy = clampi(int(d.get("work_policy", 1)), 0, 2)

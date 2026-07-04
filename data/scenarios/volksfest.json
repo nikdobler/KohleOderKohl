@@ -1,6 +1,6 @@
 {
 	"id": "volksfest", "display_name": "Das Volksfest", "description": "Der Herbst ist da, das Volk will feiern. Gebt ihm einen Grund.",
-	"start": { "stock": { "wood": 40, "wheat": 30, "bread": 20 }, "researched": ["stonemasonry", "brewing"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
+	"start": { "season": "summer", "stock": { "wood": 40, "wheat": 30, "bread": 20 }, "researched": ["stonemasonry", "brewing"], "buildings": [{ "id": "keep", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "house", "workers": 0 },{ "id": "woodcutter", "workers": 1 },{ "id": "wheat_farm", "workers": 2 },{ "id": "bakery", "workers": 1 }] },
 	"goal": { "description": "Bringt die Zufriedenheit auf 85 — ein Fest, von dem man spricht.", "trigger": { "type": "satisfaction_at_least", "amount": 85 } },
 	"events": [
 		{ "id": "fassanstich", "trigger": { "type": "stock_at_least", "resource": "beer", "amount": 15 }, "message": "Fassanstich! Der Mönch übernimmt die Qualitätskontrolle. Wieder.", "effects": [ { "type": "satisfaction_add", "amount": 10 } ] },
