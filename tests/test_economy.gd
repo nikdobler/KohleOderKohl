@@ -24,6 +24,7 @@ func run() -> Array:
 	_test_taxes_and_trade(failures)
 	_test_economy_roundtrip(failures)
 	_test_building_instance_ids(failures)
+	_test_settlement_type_roundtrip(failures)
 	return failures
 
 ## Baut eine Test-Holzfaellerhuette (2 Holz/Tick, max 1 Arbeiter).
@@ -352,3 +353,12 @@ func _test_building_instance_ids(failures: Array) -> void:
 	restored.add_building(h3)
 	if h3.id == h1.id or h3.id == h2.id:
 		failures.append("IDs: neue Vergabe kollidiert mit geladenen IDs (%d)" % h3.id)
+
+## Der Siedlungstyp (M-Gebaeudevarianten) uebersteht den Roundtrip.
+func _test_settlement_type_roundtrip(failures: Array) -> void:
+	var eco := Economy.new()
+	eco.settlement_type = &"nordmark"
+	var restored := Economy.new()
+	restored.from_dict(eco.to_dict())
+	if restored.settlement_type != &"nordmark":
+		failures.append("Roundtrip: settlement_type falsch (%s)" % restored.settlement_type)

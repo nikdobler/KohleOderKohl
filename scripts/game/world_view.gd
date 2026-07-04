@@ -119,6 +119,7 @@ var _season_tint := Color.WHITE  # aktuelle Saisontoenung (geglaettet)
 var _season_tint_target := Color.WHITE
 var _day_tint := Color.WHITE  # aktuelle Tageszeit-Toenung (geglaettet)
 var _day_tint_target := Color.WHITE
+var _settlement_type: StringName = &"heartland"  # Gebaeude-Stilquelle (M-Gebaeudevarianten)
 var _village := VillageLife.new()  # Bewegungs-Logik der Dorfbewohner (pures Modell)
 var _villager_sprites: Dictionary = {}  # Bewohner-ID -> Sprite2D
 var _anim_time: float = 0.0  # gemeinsame Uhr fuer prozedurale Animationen
@@ -159,6 +160,7 @@ func _ready() -> void:
 	EventBus.season_changed.connect(_on_season_changed)
 	EventBus.weather_changed.connect(_on_weather_changed)
 	EventBus.daytime_changed.connect(_on_daytime_changed)
+	EventBus.settlement_changed.connect(func(t: StringName) -> void: _settlement_type = t)
 	_setup_day_gradient()
 	_setup_snow()
 	_setup_rain()
@@ -591,7 +593,13 @@ func _on_buildings_changed(building_list: Array) -> void:
 		var plot := "tile_farmland" if String(entry["def_id"]) == "wheat_farm" else "tile_dirt"
 		_set_tile(_ground, entry["cell"], plot)
 		_plot_tiles[entry["cell"]] = plot
-		_add_sprite(_buildings_root, StringName("building_%s" % entry["def_id"]), entry["cell"], Vector2(0, -10))
+		# Stilvariante je Gebaeude aus dem Siedlungstyp (M-Gebaeudevarianten):
+		# rein kosmetisch, seedstabil ueber die Instanz-ID; faellt auf das
+		# Basis-Sprite zurueck, solange kein Varianten-Asset existiert.
+		var variant := BuildingVariants.pick(entry["def_id"], int(entry["id"]),
+			_settlement_type, Database.settlement_types, _map.seed_value)
+		var asset_id := AssetRegistry.building_asset_id(entry["def_id"], variant)
+		_add_sprite(_buildings_root, asset_id, entry["cell"], Vector2(0, -10))
 	var building_cells: Array = []
 	for entry in building_list:
 		building_cells.append(entry["cell"])

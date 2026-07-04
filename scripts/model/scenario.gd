@@ -54,6 +54,11 @@ func campaign_only() -> bool:
 func start_season() -> StringName:
 	return StringName(_def.get("start", {}).get("season", "spring"))
 
+## Siedlungstyp des Szenarios (Standard "heartland", M-Gebaeudevarianten) —
+## bestimmt die optischen Gebaeude-Stile.
+func start_settlement_type() -> StringName:
+	return StringName(_def.get("start", {}).get("settlement_type", "heartland"))
+
 func start_researched() -> Array:
 	var researched: Array = []
 	for id in _def.get("start", {}).get("researched", []):

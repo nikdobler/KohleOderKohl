@@ -30,6 +30,7 @@ const _SUITES: Array[String] = [
 	"res://tests/test_calendar.gd",
 	"res://tests/test_weather.gd",
 	"res://tests/test_daycycle.gd",
+	"res://tests/test_building_variants.gd",
 ]
 
 var _done: bool = false

@@ -116,6 +116,17 @@ func sprite_sheet(id: StringName, state: StringName = &"walk", facing: StringNam
 	_sheet_cache[key] = result
 	return result
 
+## Asset-ID eines Gebaeudes mit optionaler Stilvariante (M-Gebaeudevarianten):
+## die Varianten-ID nur, wenn ihre Datei existiert, sonst die Basis-ID. So
+## faellt eine noch nicht gezeichnete Variante auf das Basis-Sprite zurueck
+## (nicht auf den Platzhalter). [param variant] &"" = direkt Basis.
+func building_asset_id(def_id: StringName, variant: StringName = &"") -> StringName:
+	if variant != &"":
+		var variant_id := StringName("building_%s_%s" % [def_id, variant])
+		if ResourceLoader.exists("res://assets/%s.png" % variant_id):
+			return variant_id
+	return StringName("building_%s" % def_id)
+
 ## Liefert die Textur zu einer Asset-ID (Datei vor Platzhalter, gecacht).
 func get_texture(id: StringName) -> Texture2D:
 	if _cache.has(id):

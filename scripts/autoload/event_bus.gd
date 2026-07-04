@@ -77,6 +77,10 @@ signal season_changed(season: StringName, display: String)
 ## Controller -> UI/Welt: neue Wetterlage (M-Wetter).
 signal weather_changed(weather: StringName, display: String)
 
+## Controller -> Welt: aktiver Siedlungstyp (M-Gebaeudevarianten) — bestimmt
+## die optischen Gebaeude-Stile.
+signal settlement_changed(settlement_type: StringName)
+
 ## Controller -> UI/Welt: Tageszeit (M-Tageszeit). tod = Tagesfortschritt 0..1
 ## fuer den stufenlosen Licht-/Farbverlauf, phase/display fuer das HUD-Label.
 signal daytime_changed(tod: float, phase: StringName, display: String)

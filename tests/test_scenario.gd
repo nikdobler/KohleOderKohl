@@ -42,6 +42,7 @@ func run() -> Array:
 	var failures: Array = []
 	_test_start_config(failures)
 	_test_start_season(failures)
+	_test_start_settlement_type(failures)
 	_test_events_fire_once(failures)
 	_test_quests(failures)
 	_test_apply_effects(failures)
@@ -89,6 +90,14 @@ func _test_start_season(failures: Array) -> void:
 	var winter := Scenario.from_def({"start": {"season": "winter"}})
 	if winter.start_season() != &"winter":
 		failures.append("Startsaison: explizite Saison wird nicht uebernommen")
+
+## Startsiedlungstyp: Standard heartland, expliziter Wert wird übernommen.
+func _test_start_settlement_type(failures: Array) -> void:
+	if Scenario.from_def(_DEF).start_settlement_type() != &"heartland":
+		failures.append("Siedlungstyp: Standard muss heartland sein")
+	var s := Scenario.from_def({"start": {"settlement_type": "nordmark"}})
+	if s.start_settlement_type() != &"nordmark":
+		failures.append("Siedlungstyp: expliziter Wert wird nicht übernommen")
 
 ## Events feuern beim Trigger — und genau einmal.
 func _test_events_fire_once(failures: Array) -> void:

@@ -1,0 +1,14 @@
+{
+	"default": "heartland",
+	"types": {
+		"heartland": {
+			"display_name": "Kernland",
+			"building_variants": {
+				"house": ["fachwerk", "strohdach", "stein"],
+				"woodcutter": ["blockhaus", "schindeldach"],
+				"wheat_farm": ["scheune", "speicher"],
+				"bakery": ["holzofen", "steinofen"]
+			}
+		}
+	}
+}

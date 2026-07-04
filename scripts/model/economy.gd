@@ -43,6 +43,9 @@ var season_offset: int = 0
 ## Aktuelle Wetterlage (M-Wetter): setzt der Controller vor jedem Tick;
 ## deterministisch aus Seed+Tick, wird deshalb nicht gespeichert.
 var current_weather: StringName = &"clear"
+## Siedlungstyp (M-Gebaeudevarianten): bestimmt die optischen Gebaeude-Stile.
+## Vorerst aus dem Szenario, spaeter aus der Welt/Region. Rein kosmetisch.
+var settlement_type: StringName = &"heartland"
 ## Bewohner, die als Soldaten dienen (M5): belegen Wohnraum und essen mit,
 ## stehen der Arbeiterzuteilung aber nicht zur Verfuegung.
 var reserved_population: int = 0
@@ -315,6 +318,7 @@ func to_dict() -> Dictionary:
 		"satisfaction": satisfaction,
 		"tick_count": tick_count,
 		"season_offset": season_offset,
+		"settlement_type": String(settlement_type),
 		"next_building_id": _next_building_id,
 		"reserved_population": reserved_population,
 		"ration_level": ration_level,
@@ -335,6 +339,7 @@ func from_dict(d: Dictionary) -> void:
 	satisfaction = clampi(int(d.get("satisfaction", SATISFACTION_START)), 0, 100)
 	tick_count = int(d.get("tick_count", 0))
 	season_offset = int(d.get("season_offset", 0))
+	settlement_type = StringName(d.get("settlement_type", "heartland"))
 	_next_building_id = int(d.get("next_building_id", 1))
 	_ensure_building_ids()
 	reserved_population = int(d.get("reserved_population", 0))

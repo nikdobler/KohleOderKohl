@@ -143,6 +143,7 @@ func _refresh_ranged_structures() -> void:
 func _apply_scenario_start() -> void:
 	_economy.stock = _scenario.start_stock()
 	_economy.season_offset = Calendar.season_start_tick(_scenario.start_season())
+	_economy.settlement_type = _scenario.start_settlement_type()
 	var entries := _scenario.start_buildings()
 	var slots := _world.building_slots(entries.size())
 	for i in entries.size():
@@ -761,6 +762,7 @@ func _emit_workforce() -> void:
 ## Sendet den kompletten aktuellen Zustand an die UI (Initialisierung/Reload).
 func _emit_full_state() -> void:
 	EventBus.world_changed.emit(_world)
+	EventBus.settlement_changed.emit(_economy.settlement_type)  # vor buildings_changed
 	EventBus.buildings_changed.emit(_building_list())
 	_emit_market_state()
 	_emit_workforce()
