@@ -74,6 +74,9 @@ signal satisfaction_changed(value: int)
 ## Controller -> UI/Welt: neue Jahreszeit (M-Jahreszeiten).
 signal season_changed(season: StringName, display: String)
 
+## Controller -> UI/Welt: neue Wetterlage (M-Wetter).
+signal weather_changed(weather: StringName, display: String)
+
 ## Controller -> UI: Status einer Technologie (locked/available/researched).
 signal tech_state_changed(tech_id: StringName, status: StringName)
 

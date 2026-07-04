@@ -1,0 +1,14 @@
+{
+	"types": {
+		"clear": { "display_name": "Klar" },
+		"rain": { "display_name": "Regen" },
+		"fog": { "display_name": "Nebel", "tower_range_factor": 0.5 },
+		"snow": { "display_name": "Schneefall" }
+	},
+	"season_weights": {
+		"spring": { "clear": 5, "rain": 3, "fog": 2 },
+		"summer": { "clear": 7, "rain": 2, "fog": 1 },
+		"autumn": { "clear": 4, "rain": 3, "fog": 3 },
+		"winter": { "clear": 5, "snow": 4, "fog": 1 }
+	}
+}

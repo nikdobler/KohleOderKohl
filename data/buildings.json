@@ -37,6 +37,7 @@
 		"produces": "wheat",
 		"production_per_tick": 2,
 		"seasonal": { "spring": 1.25, "autumn": 1.5, "winter": 0.0 },
+		"weather": { "rain": 1.15 },
 		"max_workers": 2,
 		"cost": {
 			"wood": 6
@@ -200,6 +201,7 @@
 		"produces": "grapes",
 		"production_per_tick": 2,
 		"seasonal": { "spring": 1.25, "autumn": 1.5, "winter": 0.0 },
+		"weather": { "rain": 1.15 },
 		"max_workers": 2,
 		"cost": {
 			"wood": 8

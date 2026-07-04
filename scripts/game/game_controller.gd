@@ -26,9 +26,12 @@ var _scenario: Scenario
 var _campaign: Campaign
 var _campaign_chapter: String = ""  # aktives Kapitel ("" = freies Szenario)
 var _last_season: StringName = &""  # gemeldete Saison (Wechsel-Erkennung)
+var _weather := Weather.new()  # Wetterlagen aus data/weather.json (M-Wetter)
+var _last_weather: StringName = &""  # gemeldete Wetterlage (Wechsel-Erkennung)
 var _timer: Timer
 
 func _ready() -> void:
+	_weather.setup(Database.weather)
 	_campaign = Campaign.from_def(Database.campaign)
 	_campaign.from_dict(SaveManager.load_game(CAMPAIGN_SAVE_PATH))
 	_connect_events()
@@ -182,6 +185,7 @@ func _start_tick_timer() -> void:
 
 ## Ein Produktionsschritt: Wirtschaft, Kampf und Dialog-Trigger im selben Tick.
 func _on_tick() -> void:
+	_apply_weather(_economy.tick_count + 1)  # Wetter VOR der Simulation setzen
 	for resource_id in _economy.tick():
 		EventBus.stock_changed.emit(resource_id, _economy.get_stock(resource_id))
 	EventBus.satisfaction_changed.emit(_economy.satisfaction)
@@ -202,6 +206,18 @@ func _season_tick() -> void:
 	EventBus.season_changed.emit(season, Calendar.display(_economy.tick_count))
 	if had_season:  # Spielstart ist keine Meldung wert, echte Wechsel schon
 		EventBus.scenario_event.emit(_season_message(season))
+
+## Wetter des Ticks anwenden (M-Wetter): Economy-Faktor und Turm-Reichweite
+## setzen, Wechsel-Flanke an UI/Welt melden. Das Wetter selbst ist eine reine
+## Funktion aus Welt-Seed + Tick — nichts zu speichern.
+func _apply_weather(tick: int, force_emit: bool = false) -> void:
+	var weather := _weather.current(_world.seed_value, tick)
+	_economy.current_weather = weather
+	_combat.tower_range_factor = float(
+		_weather.type_def(weather).get("tower_range_factor", 1.0))
+	if weather != _last_weather or force_emit:
+		_last_weather = weather
+		EventBus.weather_changed.emit(weather, _weather.display_name(weather))
 
 func _season_message(season: StringName) -> String:
 	match season:
@@ -731,6 +747,7 @@ func _emit_full_state() -> void:
 	EventBus.satisfaction_changed.emit(_economy.satisfaction)
 	_last_season = Calendar.season(_economy.tick_count)
 	EventBus.season_changed.emit(_last_season, Calendar.display(_economy.tick_count))
+	_apply_weather(_economy.tick_count, true)
 	EventBus.combat_state_changed.emit(_combat.snapshot())
 	EventBus.scenario_state_changed.emit(_scenario_info())
 	EventBus.quest_state_changed.emit(_scenario.quest_states())

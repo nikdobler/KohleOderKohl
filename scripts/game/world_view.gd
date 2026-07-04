@@ -89,8 +89,11 @@ var _build_def_id: StringName = &""  # aktiver Bau-Modus (leer = aus)
 var _demolish_mode := false  # aktiver Abriss-Modus (M11)
 var _ghost: Sprite2D
 var _ghost_cell := Vector2i.ZERO  # Zelle, auf der der Geist steht (= Bau-/Abrissziel)
-var _snow: CPUParticles2D  # Schneefall im Winter (M-Jahreszeiten)
+var _snow: CPUParticles2D  # Schneefall (M-Jahreszeiten, seit M-Wetter wettergesteuert)
+var _rain: CPUParticles2D  # Regen (M-Wetter)
+var _fog: ColorRect  # Nebelschleier ueber der Welt (M-Wetter)
 var _season_tween: Tween  # laufender Toenungs-Uebergang
+var _fog_tween: Tween  # laufender Nebel-Uebergang
 var _village := VillageLife.new()  # Bewegungs-Logik der Dorfbewohner (pures Modell)
 var _villager_sprites: Dictionary = {}  # Bewohner-ID -> Sprite2D
 var _anim_time: float = 0.0  # gemeinsame Uhr fuer prozedurale Animationen
@@ -129,7 +132,10 @@ func _ready() -> void:
 	EventBus.demolish_mode_selected.connect(_enter_demolish_mode)
 	EventBus.build_preview_result.connect(_on_preview_result)
 	EventBus.season_changed.connect(_on_season_changed)
+	EventBus.weather_changed.connect(_on_weather_changed)
 	_setup_snow()
+	_setup_rain()
+	_setup_fog()
 
 ## Pfeil-Animation (M10): kurze, ausblendende Linie je Turmschuss.
 func _on_tower_shots(shots: Array) -> void:
@@ -289,24 +295,67 @@ func _setup_snow() -> void:
 	_snow.z_index = 3950  # ueber der Welt, unter dem Bau-Geist
 	add_child(_snow)
 
-## Saisonwechsel (M-Jahreszeiten): Welt sanft toenen, im Winter schneit es.
+## Regen (M-Wetter): schraeg fallende Tropfen, gleiches Kamera-Muster wie Schnee.
+func _setup_rain() -> void:
+	_rain = CPUParticles2D.new()
+	_rain.emitting = false
+	_rain.amount = 500
+	_rain.lifetime = 1.4
+	_rain.preprocess = 1.4  # beim Einsetzen faellt der Regen sofort ueberall
+	_rain.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	_rain.direction = Vector2(-0.15, 1.0)
+	_rain.gravity = Vector2(-40, 480)
+	_rain.initial_velocity_min = 120.0
+	_rain.initial_velocity_max = 200.0
+	_rain.scale_amount_min = 2.0
+	_rain.scale_amount_max = 3.0
+	_rain.color = Color(0.75, 0.85, 1.0, 0.85)
+	_rain.z_index = 3950
+	add_child(_rain)
+
+## Nebel (M-Wetter): halbtransparenter Schleier, der der Kamera folgt.
+## MOUSE_FILTER_IGNORE ist Pflicht — sonst schluckt der Nebel alle Weltklicks.
+func _setup_fog() -> void:
+	_fog = ColorRect.new()
+	_fog.color = Color(0.78, 0.8, 0.84, 0.0)
+	_fog.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fog.z_index = 3940  # ueber der Welt, unter Niederschlag und Bau-Geist
+	add_child(_fog)
+
+## Saisonwechsel (M-Jahreszeiten): Welt sanft toenen. Ob es dabei schneit
+## oder regnet, entscheidet seit M-Wetter die Wetterlage.
 func _on_season_changed(season: StringName, _display: String) -> void:
 	var tint: Color = SEASON_TINTS.get(season, Color.WHITE)
 	if _season_tween != null and _season_tween.is_valid():
 		_season_tween.kill()
 	_season_tween = create_tween()
 	_season_tween.tween_property(self, "modulate", tint, SEASON_TINT_DURATION)
-	_snow.emitting = season == &"winter"
 
-## Schnee an der Kamera halten und das Spawn-Rechteck an die Sicht anpassen.
-func _update_snow() -> void:
-	if not _snow.emitting:
-		return
+## Wetterwechsel (M-Wetter): passenden Niederschlag zeigen, Nebel ein-/ausblenden.
+func _on_weather_changed(weather: StringName, _display: String) -> void:
+	_snow.emitting = weather == &"snow"
+	_rain.emitting = weather == &"rain"
+	var fog_alpha := 0.35 if weather == &"fog" else 0.0
+	if _fog_tween != null and _fog_tween.is_valid():
+		_fog_tween.kill()
+	_fog_tween = create_tween()
+	_fog_tween.tween_property(_fog, "color:a", fog_alpha, SEASON_TINT_DURATION)
+
+## Wetter-Effekte an der Kamera halten (Spawn-Flaeche/Schleier decken die Sicht,
+## unabhaengig von Zoom und Position — die Welt selbst ist grenzenlos).
+func _update_weather_overlays() -> void:
 	var cam := get_viewport().get_camera_2d()
 	if cam == null:
 		return
-	_snow.position = cam.get_screen_center_position()
-	_snow.emission_rect_extents = get_viewport_rect().size / (2.0 * cam.zoom) + Vector2(80, 80)
+	var half := get_viewport_rect().size / (2.0 * cam.zoom)
+	var center := cam.get_screen_center_position()
+	for emitter in [_snow, _rain]:
+		if emitter.emitting:
+			emitter.position = center
+			emitter.emission_rect_extents = half + Vector2(80, 80)
+	if _fog.color.a > 0.0:
+		_fog.position = center - half - Vector2(40, 40)
+		_fog.size = half * 2.0 + Vector2(80, 80)
 
 func _process(delta: float) -> void:
 	_anim_time += delta
@@ -315,7 +364,7 @@ func _process(delta: float) -> void:
 	_move_villagers(delta)
 	_glide_combat_units(delta)
 	_update_dying(delta)
-	_update_snow()
+	_update_weather_overlays()
 	_follow_mouse_in_build_mode()
 	_stream_accum += delta
 	if _stream_accum >= STREAM_INTERVAL:

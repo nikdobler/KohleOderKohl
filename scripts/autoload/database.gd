@@ -14,6 +14,7 @@ const UNITS_PATH: String = "res://data/units.json"
 const ANIMALS_PATH: String = "res://data/animals.json"
 const ENEMY_PATH: String = "res://data/enemy.json"
 const CAMPAIGN_PATH: String = "res://data/campaign.json"
+const WEATHER_PATH: String = "res://data/weather.json"
 const DIALOGUES_DIR: String = "res://data/dialogues"
 const SCENARIOS_DIR: String = "res://data/scenarios"
 
@@ -26,6 +27,7 @@ var units: Dictionary = {}
 var animals: Dictionary = {}
 var enemy: Dictionary = {}
 var campaign: Dictionary = {}  # Kapitelfolge der Hauptstory (M14)
+var weather: Dictionary = {}  # Wettertypen + Saison-Gewichte (M-Wetter)
 var dialogues: Dictionary = {}  # npc_id -> kompletter Datei-Inhalt
 var scenarios: Dictionary = {}  # szenario_id -> kompletter Datei-Inhalt
 
@@ -39,6 +41,7 @@ func _ready() -> void:
 	animals = _load_json(ANIMALS_PATH)
 	enemy = _load_json(ENEMY_PATH)
 	campaign = _load_json(CAMPAIGN_PATH)
+	weather = _load_json(WEATHER_PATH)
 	dialogues = _load_json_dir(DIALOGUES_DIR, func(def: Dictionary) -> String:
 		return def.get("npc", {}).get("id", ""))
 	scenarios = _load_json_dir(SCENARIOS_DIR, func(def: Dictionary) -> String:

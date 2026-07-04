@@ -74,6 +74,9 @@ var obstacles: Dictionary = {}
 var player_stance: StringName = STANCE_GUARD
 var status: StringName = STATUS_ACTIVE
 var tick_count: int = 0
+## Wetter-Faktor auf die Turm-Reichweite (M-Wetter, Nebel = 0.5): setzt der
+## Controller je Tick; deterministisch aus Seed+Tick, wird nicht gespeichert.
+var tower_range_factor: float = 1.0
 
 var _unit_defs: Dictionary = {}  # StringName -> typisierte Werte
 var _enemy_unit_type: StringName = &""
@@ -309,7 +312,9 @@ func _tower_fire(events: Array) -> void:
 		var attack := int(obstacles[cell].get("attack", 0))
 		if attack <= 0:
 			continue
-		var target := _nearest_enemy_unit(cell, int(obstacles[cell].get("range", 0)))
+		var shot_range := maxi(1,
+			roundi(int(obstacles[cell].get("range", 0)) * tower_range_factor))
+		var target := _nearest_enemy_unit(cell, shot_range)
 		if target == null:
 			continue
 		var base := maxi(1, attack - target.defense)

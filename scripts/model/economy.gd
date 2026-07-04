@@ -34,6 +34,9 @@ var buildings: Array[BuildingInstance] = []
 ## Zufriedenheit der Arbeiter, einfacher Wert 0..100 (M2).
 var satisfaction: int = SATISFACTION_START
 var tick_count: int = 0
+## Aktuelle Wetterlage (M-Wetter): setzt der Controller vor jedem Tick;
+## deterministisch aus Seed+Tick, wird deshalb nicht gespeichert.
+var current_weather: StringName = &"clear"
 ## Bewohner, die als Soldaten dienen (M5): belegen Wohnraum und essen mit,
 ## stehen der Arbeiterzuteilung aber nicht zur Verfuegung.
 var reserved_population: int = 0
@@ -193,7 +196,8 @@ func _produce(b: BuildingInstance, changed: Array) -> void:
 	for res in b.consumes:
 		stock[res] = get_stock(res) - b.input_needed(res)
 		_mark_changed(changed, res)
-	b.production_carry += b.production() * productivity() * season_factor
+	b.production_carry += (b.production() * productivity() * season_factor
+		* b.weather_factor(current_weather))
 	var whole := int(b.production_carry)
 	if whole > 0:
 		b.production_carry -= whole
