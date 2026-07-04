@@ -11,8 +11,9 @@ extends RefCounted
 ## (buildings.json "seasonal": {Saison -> Produktionsfaktor}, angewandt in
 ## der Economy) und bei Triggern (TriggerEval-Typ "season").
 
-## Laenge einer Saison in Ticks (1 Tick = 1 Sekunde -> Jahr = 6 Minuten).
-const SEASON_TICKS: int = 90
+## Laenge einer Saison in Ticks (1 Tick = 1 Sekunde -> Saison = 15 Minuten,
+## Jahr = 1 Stunde; User-Wunsch 2026-07-04: gemaechlicher Jahreslauf).
+const SEASON_TICKS: int = 900
 
 ## Saisons in Jahresreihenfolge; das Spiel startet im Fruehling.
 const SEASONS: Array[StringName] = [&"spring", &"summer", &"autumn", &"winter"]

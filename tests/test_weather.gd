@@ -61,16 +61,17 @@ func _test_stable_within_period(failures: Array) -> void:
 			failures.append("Periode: Tick %d weicht von Tick 0 ab" % tick)
 			return
 
-## Saison-Gewichte greifen: nie Regen im Winter, nie Schnee im Sommer.
+## Saison-Gewichte greifen: nie Regen im Winter, nie Schnee im Sommer
+## (alle Wetterperioden der jeweiligen Saison von Jahr 1, 50 Seeds).
 func _test_season_consistency(failures: Array) -> void:
 	var weather := _make_weather()
+	var s := Calendar.SEASON_TICKS
 	for world_seed in range(50):
-		for period_start in [270, 300, 330]:  # Winter von Jahr 1
-			if weather.current(world_seed, period_start) == &"rain":
+		for offset in range(0, s, Weather.WEATHER_TICKS):
+			if weather.current(world_seed, 3 * s + offset) == &"rain":
 				failures.append("Saison: Regen im Winter (Seed %d)" % world_seed)
 				return
-		for period_start in [90, 120, 150]:  # Sommer von Jahr 1
-			if weather.current(world_seed, period_start) == &"snow":
+			if weather.current(world_seed, s + offset) == &"snow":
 				failures.append("Saison: Schnee im Sommer (Seed %d)" % world_seed)
 				return
 
@@ -146,8 +147,12 @@ func _test_weather_roundtrip(failures: Array) -> void:
 		failures.append("Roundtrip: weather-Faktoren nach Laden falsch (%s)"
 			% str(restored.weather))
 
-## data/weather.json passt zu Kalender und buildings.json.
+## data/weather.json passt zu Kalender und buildings.json; die Wetterperiode
+## muss die Saison ganzzahlig teilen (sonst ueberspannt sie Saisonwechsel).
 func _test_data_consistency(failures: Array) -> void:
+	if Calendar.SEASON_TICKS % Weather.WEATHER_TICKS != 0:
+		failures.append("Daten: WEATHER_TICKS (%d) muss SEASON_TICKS (%d) teilen"
+			% [Weather.WEATHER_TICKS, Calendar.SEASON_TICKS])
 	var data: Dictionary = Database.weather
 	if data.is_empty():
 		failures.append("Daten: data/weather.json fehlt oder ist leer")

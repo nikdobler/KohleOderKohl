@@ -11,10 +11,11 @@ extends RefCounted
 ## bei den Wettertypen selbst (weather.json "tower_range_factor" fuer Nebel,
 ## angewandt im CombatSystem via Controller).
 
-## Dauer einer Wetterlage in Ticks (= SEASON_TICKS: genau eine Lage je
-## Saison, laenger geht nicht — sonst wuerde z. B. Herbstregen in den
-## Winter hineinreichen; User-Wunsch 2026-07-04: ruhige Wechsel).
-const WEATHER_TICKS: int = 90
+## Dauer einer Wetterlage in Ticks (3 Minuten, "alle paar Minuten" —
+## User-Wunsch 2026-07-04). Muss SEASON_TICKS ganzzahlig teilen, damit
+## keine Lage einen Saisonwechsel ueberspannt (sonst Herbstregen im
+## Winter); der Datencheck in test_weather erzwingt das.
+const WEATHER_TICKS: int = 180
 
 const DEFAULT: StringName = &"clear"
 

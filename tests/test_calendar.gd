@@ -29,11 +29,13 @@ func _make_field() -> BuildingInstance:
 	})
 
 ## Saisonfolge: Fruehling -> Sommer -> Herbst -> Winter -> wieder Fruehling.
+## Ticks relativ zu SEASON_TICKS, damit Laengen-Tuning die Tests nicht bricht.
 func _test_season_mapping(failures: Array) -> void:
+	var s := Calendar.SEASON_TICKS
 	var expected := {
-		0: &"spring", 89: &"spring",
-		90: &"summer", 180: &"autumn", 270: &"winter",
-		360: &"spring", 450: &"summer",
+		0: &"spring", s - 1: &"spring",
+		s: &"summer", 2 * s: &"autumn", 3 * s: &"winter",
+		4 * s: &"spring", 5 * s: &"summer",
 	}
 	for tick in expected:
 		if Calendar.season(tick) != expected[tick]:
@@ -42,26 +44,27 @@ func _test_season_mapping(failures: Array) -> void:
 
 ## Jahr beginnt bei 1 und wechselt nach 4 Saisons; Fortschritt laeuft 0..1.
 func _test_year_and_progress(failures: Array) -> void:
-	if Calendar.year(0) != 1 or Calendar.year(359) != 1 or Calendar.year(360) != 2:
+	var s := Calendar.SEASON_TICKS
+	if Calendar.year(0) != 1 or Calendar.year(4 * s - 1) != 1 or Calendar.year(4 * s) != 2:
 		failures.append("Jahr: erwartet 1/1/2, erhalten %d/%d/%d"
-			% [Calendar.year(0), Calendar.year(359), Calendar.year(360)])
-	if not is_equal_approx(Calendar.season_progress(45), 0.5):
-		failures.append("Fortschritt: Tick 45 erwartet 0.5, erhalten %f"
-			% Calendar.season_progress(45))
+			% [Calendar.year(0), Calendar.year(4 * s - 1), Calendar.year(4 * s)])
+	if not is_equal_approx(Calendar.season_progress(s / 2), 0.5):
+		failures.append("Fortschritt: halbe Saison erwartet 0.5, erhalten %f"
+			% Calendar.season_progress(s / 2))
 
 ## Anzeigetext ist deutsch und traegt das Jahr.
 func _test_display(failures: Array) -> void:
 	if Calendar.display(0) != "Frühling, Jahr 1":
 		failures.append("Anzeige: Tick 0 erwartet 'Frühling, Jahr 1', erhalten '%s'"
 			% Calendar.display(0))
-	if Calendar.display(450) != "Sommer, Jahr 2":
-		failures.append("Anzeige: Tick 450 erwartet 'Sommer, Jahr 2', erhalten '%s'"
-			% Calendar.display(450))
+	if Calendar.display(5 * Calendar.SEASON_TICKS) != "Sommer, Jahr 2":
+		failures.append("Anzeige: Sommer Jahr 2 erwartet, erhalten '%s'"
+			% Calendar.display(5 * Calendar.SEASON_TICKS))
 
 ## Winter (Faktor 0) stoppt das Feld komplett.
 func _test_winter_stops_field(failures: Array) -> void:
 	var eco := Economy.new()
-	eco.tick_count = 269  # naechster Tick ist der erste Wintertick
+	eco.tick_count = 3 * Calendar.SEASON_TICKS - 1  # naechster Tick = erster Wintertick
 	var field := _make_field()
 	field.set_workers(1)
 	eco.add_building(field)
@@ -72,7 +75,7 @@ func _test_winter_stops_field(failures: Array) -> void:
 ## Saisonpause verschwendet keine Eingangsressourcen (return VOR dem Verbrauch).
 func _test_winter_pause_skips_consumption(failures: Array) -> void:
 	var eco := Economy.new()
-	eco.tick_count = 269
+	eco.tick_count = 3 * Calendar.SEASON_TICKS - 1
 	var press := BuildingInstance.from_def({
 		"id": "winery",
 		"produces": "wine",
@@ -92,7 +95,7 @@ func _test_winter_pause_skips_consumption(failures: Array) -> void:
 ## Herbst-Faktor 1.5 hebt die Ausbeute (2 -> 3 je Tick).
 func _test_autumn_boosts_field(failures: Array) -> void:
 	var eco := Economy.new()
-	eco.tick_count = 179  # naechster Tick ist der erste Herbsttick
+	eco.tick_count = 2 * Calendar.SEASON_TICKS - 1  # naechster Tick = erster Herbsttick
 	var field := _make_field()
 	field.set_workers(1)
 	eco.add_building(field)
@@ -103,7 +106,9 @@ func _test_autumn_boosts_field(failures: Array) -> void:
 ## Winter-Faktor 0.5 halbiert Viehwirtschaft (Bruchteile sammeln sich im Carry).
 func _test_winter_halves_livestock(failures: Array) -> void:
 	var eco := Economy.new()
-	eco.tick_count = 270  # Ticks 271/272: Winter, aber keine Fuetterung (Laune stabil)
+	# Die beiden Folgeticks liegen im Winter, sind aber keine Fuetterungs-
+	# Ticks (Vielfache von 10) — die Laune bleibt stabil bei Produktivitaet 1.
+	eco.tick_count = 3 * Calendar.SEASON_TICKS
 	var farm := BuildingInstance.from_def({
 		"id": "pig_farm",
 		"produces": "pig",

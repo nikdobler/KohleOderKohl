@@ -10,11 +10,11 @@
 			"nodes": { "start": { "text": "Der Weizen ist knapp. Ich sage nur: Mehr Felder, weniger Fahnenmasten. Aber auf mich hört ja keiner — ich rieche zu sehr nach Erfahrung." } }
 		},
 		{
-			"id": "erntezeit", "trigger": { "type": "season", "season": "autumn" }, "requires_seen": "intro", "once": false, "cooldown_ticks": 300, "priority": 3, "start": "start",
+			"id": "erntezeit", "trigger": { "type": "season", "season": "autumn" }, "requires_seen": "intro", "once": false, "cooldown_ticks": 1200, "priority": 3, "start": "start",
 			"nodes": { "start": { "text": "Herbst! Jetzt geben die Felder alles — und ich auch. Wer jetzt nicht erntet, kauft im Winter krummes Gemüse. Von mir. Zum Preis von geradem." } }
 		},
 		{
-			"id": "winterruhe", "trigger": { "type": "season", "season": "winter" }, "requires_seen": "intro", "once": false, "cooldown_ticks": 300, "priority": 3, "start": "start",
+			"id": "winterruhe", "trigger": { "type": "season", "season": "winter" }, "requires_seen": "intro", "once": false, "cooldown_ticks": 1200, "priority": 3, "start": "start",
 			"nodes": { "start": { "text": "Der Boden ist hart gefroren — die Felder ruhen, und ich offiziell auch. Hoffentlich habt Ihr den Speicher voll. Meiner ist es. Rein zufällig." } }
 		}
 	]
