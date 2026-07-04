@@ -52,13 +52,13 @@ func _test_deterministic(failures: Array) -> void:
 		if not _DATA["types"].has(String(got)):
 			failures.append("Determinismus: unbekannte Wetterlage '%s'" % got)
 
-## Innerhalb einer 30-Tick-Periode aendert sich das Wetter nicht.
+## Innerhalb einer Wetterperiode aendert sich das Wetter nicht.
 func _test_stable_within_period(failures: Array) -> void:
 	var weather := _make_weather()
-	var first := weather.current(42, 60)
-	for tick in range(60, 90):
+	var first := weather.current(42, 0)
+	for tick in range(Weather.WEATHER_TICKS):
 		if weather.current(42, tick) != first:
-			failures.append("Periode: Tick %d weicht von Tick 60 ab" % tick)
+			failures.append("Periode: Tick %d weicht von Tick 0 ab" % tick)
 			return
 
 ## Saison-Gewichte greifen: nie Regen im Winter, nie Schnee im Sommer.
